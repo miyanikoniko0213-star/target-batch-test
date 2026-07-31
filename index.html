@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f5f5f7">
-<title>Target Batch Test Ver.6 AI Ready</title>
+<title>Target Batch Test Ver.6.1 AI Ready</title>
 <style>
 :root{
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
@@ -174,7 +174,7 @@ body.dark .tag{background:#34363a}
 
 .quick-range-wrap{margin-top:12px}.quick-range{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}.quick-range button{padding:8px 11px}.preset-row{display:grid;grid-template-columns:minmax(180px,1fr) auto auto;gap:8px;margin-top:10px}.version-card{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:13px;line-height:1.7}.result-actions button{min-width:170px}.quick-count,.quick-time{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}.quick-count button,.quick-time button{padding:8px 11px}.limit-note{margin-top:6px;font-size:12px;color:var(--muted)}.result-actions{align-items:stretch}@media(max-width:700px){.preset-row{grid-template-columns:1fr}.result-actions button{width:100%}}
 
-/* Ver.6 AI Ready */
+/* Ver.6.1 AI Ready */
 header{position:fixed;left:0;right:0;top:0;z-index:60}
 body{padding-top:62px}
 .header-inner{align-items:flex-start}
@@ -190,12 +190,36 @@ body{padding-top:62px}
 .pause-overlay{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.72);display:grid;place-items:center;padding:20px}
 .pause-panel{max-width:420px;width:100%;background:var(--card);color:var(--text);border-radius:18px;padding:24px;text-align:center}
 @media(max-width:650px){.top-status{min-width:170px}.header-inner h1{font-size:15px}.test-tools{top:61px}}
+
+/* Ver.6.1 result UI and interaction fixes */
+.result-hero{
+  background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 13%,var(--card)),var(--card));
+  border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line));
+  border-radius:20px;padding:20px;margin-bottom:14px;overflow:hidden;position:relative
+}
+.result-hero:after{content:"";position:absolute;width:190px;height:190px;border-radius:50%;right:-85px;top:-105px;background:color-mix(in srgb,var(--accent) 12%,transparent);pointer-events:none}
+.result-title{font-size:14px;color:var(--muted);font-weight:800;margin-bottom:8px}
+.result-score-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.result-score{font-size:46px;line-height:1;font-weight:950;letter-spacing:-.04em}
+.result-score small{font-size:18px;color:var(--muted);letter-spacing:0}
+.result-summary{font-size:14px;color:var(--muted);line-height:1.7}
+.result-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:16px}
+.result-metric{background:color-mix(in srgb,var(--card) 88%,transparent);border:1px solid var(--line);border-radius:13px;padding:11px;text-align:center}
+.result-metric b{display:block;font-size:21px}.result-metric span{font-size:11px;color:var(--muted)}
+.result-section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 10px}
+.result-section-title h2{margin:0;font-size:20px}
+#results{min-height:calc(100vh - 140px);padding-bottom:28px}
+#results .card{box-shadow:0 8px 24px rgba(0,0,0,.045)}
+#badResults:empty:after{content:"該当する項目はありません。";display:block;padding:28px;text-align:center;color:var(--muted)}
+.result-empty{padding:28px 12px;text-align:center;border:1px dashed var(--line);border-radius:12px;color:var(--muted);background:color-mix(in srgb,var(--card) 85%,var(--page))}
+.pause-panel h2{margin-top:0}
+@media(max-width:650px){.result-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.result-score{font-size:40px}}
 </style>
 </head>
 <body>
 <header>
   <div class="header-inner">
-    <div style="display:flex;align-items:center;gap:8px"><h1>Target Batch Test</h1><span style="font-size:12px;font-weight:800;background:#111;color:#fff;padding:3px 8px;border-radius:999px">Ver.6 AI Ready</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><h1>Target Batch Test</h1><span style="font-size:12px;font-weight:800;background:#111;color:#fff;padding:3px 8px;border-radius:999px">Ver.6.1 AI Ready</span></div>
     <div class="top-status">
       <span id="progressTop">0 / 0</span><span id="timerTop" class="timer"></span>
       <span id="unansweredTop"></span><span id="avgTimeTop"></span>
@@ -359,7 +383,8 @@ body{padding-top:62px}
 </section>
 
 <section id="results" class="hidden">
-  <div class="card">
+  <div class="result-hero">
+    <div class="result-title">テスト結果</div>
     <div id="stats" class="stats"></div>
     <div class="actions result-actions">
       <button id="retrySame">同じ条件でもう一度</button>
@@ -371,12 +396,12 @@ body{padding-top:62px}
   </div>
 
   <div id="reviewQ" class="card hidden">
-    <h2>○だが「？」付き</h2>
+    <div class="result-section-title"><h2>○だが「？」付き</h2><span class="small">確認候補</span></div>
     <div id="qmarkResults"></div>
   </div>
 
   <div id="reviewBad" class="card">
-    <h2>△・×</h2>
+    <div class="result-section-title"><h2>△・×</h2><span class="small">復習対象</span></div>
     <div class="tabbar">
       <button id="tabAll" class="active">すべて</button>
       <button id="tabMid">△のみ</button>
@@ -506,7 +531,7 @@ body{padding-top:62px}
     </div>
     <div class="notice" style="margin-top:12px">設定はこの端末に保存されます。</div>
     <div class="version-card">
-      <b>Target Batch Test Ver.6 AI Ready</b>
+      <b>Target Batch Test Ver.6.1 AI Ready</b>
       <div>登録単語数 <strong id="registeredWordCount">400</strong> / 1900</div>
       <div class="small">Target 1900：現在の登録範囲を自動認識。「全範囲」は語数追加後もそのまま使用できます。</div>
     </div>
@@ -514,6 +539,18 @@ body{padding-top:62px}
 </section>
 
 </main>
+
+
+<div id="pauseOverlay" class="pause-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+  <div class="pause-panel">
+    <h2 id="pauseTitle">テストを中断中</h2>
+    <p class="small">制限時間と回答時間の計測は停止しています。</p>
+    <div class="actions" style="justify-content:center">
+      <button id="resumePauseBtn">テストを再開</button>
+      <button class="secondary" id="pauseSaveExitBtn">保存してホームへ</button>
+    </div>
+  </div>
+</div>
 
 
 <nav class="bottom-tabs" style="grid-template-columns:repeat(5,1fr)">
@@ -1155,9 +1192,20 @@ function submitTest(auto=false){
   makeAutoBackup();
   clearDraft();
 
-  $("stats").textContent=
-    `○ ${counts["○"]} / △ ${counts["△"]} / × ${counts["×"]}　正答率 ${Math.round(counts["○"]/currentRows.length*100)}%`
-    +`　平均回答 ${responseTimes.filter(x=>x>0).length?(responseTimes.filter(x=>x>0).reduce((a,b)=>a+b,0)/responseTimes.filter(x=>x>0).length/1000).toFixed(1):"—"}秒`+(auto?"（時間切れで自動提出）":"");
+  const timed=responseTimes.filter(x=>x>0);
+  const accuracy=Math.round(counts["○"]/currentRows.length*100);
+  const avgSec=timed.length?(timed.reduce((a,b)=>a+b,0)/timed.length/1000).toFixed(1):"—";
+  $("stats").innerHTML=`
+    <div class="result-score-row">
+      <div><div class="result-score">${accuracy}<small>%</small></div><div class="result-summary">${currentRows.length}問中 ${counts["○"]}問正解${auto?"・時間切れで自動提出":""}</div></div>
+      <div class="result-summary">平均回答時間<br><b style="font-size:22px;color:var(--text)">${avgSec}秒</b></div>
+    </div>
+    <div class="result-metrics">
+      <div class="result-metric"><b>${counts["○"]}</b><span>○ 正解</span></div>
+      <div class="result-metric"><b>${counts["△"]}</b><span>△ 惜しい</span></div>
+      <div class="result-metric"><b>${counts["×"]}</b><span>× 不正解</span></div>
+      <div class="result-metric"><b>${currentRows.filter(r=>r.hasQ).length}</b><span>？ 確認</span></div>
+    </div>`;
 
   const qrows=currentRows.filter(r=>r.grade==="○"&&r.hasQ);
   $("reviewQ").classList.toggle("hidden",!qrows.length);
@@ -1168,7 +1216,7 @@ function submitTest(auto=false){
 }
 function renderBadResults(){
   const rows=lastBad.filter(r=>activeFilter==="all"||r.grade===activeFilter);
-  $("badResults").innerHTML=rows.length?rows.map(renderResult).join(""):"該当する項目はありません。";
+  $("badResults").innerHTML=rows.length?rows.map(renderResult).join(""):'<div class="result-empty">該当する項目はありません。</div>';
 }
 function renderResult(r){
   const cls=r.grade==="×"?"bad":r.grade==="△"?"mid":"qmark";
@@ -1309,7 +1357,11 @@ function escapeHtml(s){
   return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
 }
 
-$("startBtn").onclick=()=>startTest();$("pauseBtn").onclick=()=>setPaused(true);$("resumePauseBtn").onclick=()=>setPaused(false);document.addEventListener("visibilitychange",()=>{if(document.hidden&&!$("test").classList.contains("hidden")&&!paused)setPaused(true)});
+$("startBtn").onclick=()=>startTest();
+$("pauseBtn").onclick=()=>setPaused(true);
+$("resumePauseBtn").onclick=()=>setPaused(false);
+$("pauseSaveExitBtn").onclick=()=>{saveDraft();paused=false;pauseStartedAt=null;$("pauseOverlay").classList.add("hidden");clearInterval(timerId);$("timerTop").textContent="";$("unansweredTop").textContent="";switchView("setup")};
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&!$("test").classList.contains("hidden")&&!paused)setPaused(true)});
 $("submitBtn").onclick=()=>submitTest(false);
 $("retrySame").onclick=()=>{if(!lastTestConfig)return alert("直前の条件がありません。");startWithSettings(lastTestConfig)};
 $("changeAndRetry").onclick=()=>{applySettings(lastTestConfig);switchView("setup")};
