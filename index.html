@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f5f5f7">
-<title>Target Batch Test Ver.3</title>
+<title>Target Batch Test Ver.5 Mega</title>
 <style>
 :root{
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
@@ -121,12 +121,62 @@ body{padding-bottom:76px}
 .weak-controls button{padding:8px 10px}
 .empty-state{padding:28px 12px;text-align:center;color:#666}
 
+
+.backup-list{display:grid;gap:9px;margin-top:10px}
+.backup-item{
+  border:1px solid #ddd;border-radius:12px;padding:11px;background:#fafafa
+}
+.backup-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.backup-name{font-weight:850}
+.backup-meta{font-size:12px;color:#666;margin-top:4px;line-height:1.5}
+.metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:12px}
+.metric{border:1px solid #ddd;border-radius:12px;padding:12px;background:#fafafa}
+.metric b{display:block;font-size:22px}
+.metric span{font-size:12px;color:#666}
+@media(max-width:650px){.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+:root{--accent:#111;--accentText:#fff;--page:#f5f5f7;--card:#fff;--text:#111;--muted:#666;--line:#ddd}
+body{background:var(--page);color:var(--text)}
+.card,.weak-card,.backup-item,.metric{background:var(--card);border-color:var(--line)}
+button{background:var(--accent);color:var(--accentText)}
+body.dark{--page:#111214;--card:#1c1d20;--text:#f4f4f5;--muted:#aaa;--line:#34363a}
+body.dark input,body.dark select,body.dark textarea{background:#111214;color:#f4f4f5;border-color:#45474d}
+body.dark .notice,body.dark .metric,body.dark .backup-item{background:#24262a}
+body.dark .history-table th,body.dark .history-table td{border-color:#34363a}
+.dashboard-grid{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:14px}
+.goal-ring{display:flex;align-items:center;gap:14px}
+.ring{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent) var(--pct),#ddd 0);position:relative;flex:none}
+.ring:after{content:"";position:absolute;width:62px;height:62px;border-radius:50%;background:var(--card)}
+.ring b{z-index:1;font-size:18px}
+.quick-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-day{aspect-ratio:1;border-radius:7px;background:#ececef;display:grid;place-items:center;font-size:11px}
+.cal-day.l1{background:color-mix(in srgb,var(--accent) 25%,#fff)}
+.cal-day.l2{background:color-mix(in srgb,var(--accent) 48%,#fff)}
+.cal-day.l3{background:color-mix(in srgb,var(--accent) 72%,#fff);color:#fff}
+.cal-day.l4{background:var(--accent);color:var(--accentText)}
+.word-grid{display:grid;gap:9px}
+.word-card{border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--card)}
+.word-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.icon-btn{background:transparent;color:var(--text);border:1px solid var(--line);padding:7px 9px}
+.icon-btn.on{background:var(--accent);color:var(--accentText)}
+.tag{display:inline-block;font-size:11px;padding:3px 7px;border-radius:999px;background:#ececef;margin:3px 3px 0 0}
+body.dark .tag{background:#34363a}
+.searchbar{display:grid;grid-template-columns:1fr auto;gap:8px}
+.chart{width:100%;height:180px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.analysis-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.analysis-box{border:1px solid var(--line);border-radius:12px;padding:12px}
+.analysis-list{margin:8px 0 0;padding-left:20px;line-height:1.7}
+.settings-row{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+@media(max-width:760px){.dashboard-grid{grid-template-columns:1fr}.analysis-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
 <header>
   <div class="header-inner">
-    <div style="display:flex;align-items:center;gap:8px"><h1>Target Batch Test</h1><span style="font-size:12px;font-weight:800;background:#111;color:#fff;padding:3px 8px;border-radius:999px">Ver.3</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><h1>Target Batch Test</h1><span style="font-size:12px;font-weight:800;background:#111;color:#fff;padding:3px 8px;border-radius:999px">Ver.5 Mega</span></div>
     <div class="top-status">
       <span id="unansweredTop"></span>
       <span id="timerTop" class="timer"></span>
@@ -135,8 +185,34 @@ body{padding-bottom:76px}
 </header>
 
 <main class="wrap">
-<section id="setup" class="card">
-  <h2 style="margin-top:0">テスト設定</h2>
+<section id="setup">
+
+  <div class="dashboard-grid">
+    <div class="card" style="margin:0">
+      <div class="goal-ring">
+        <div id="goalRing" class="ring" style="--pct:0%"><b id="goalPct">0%</b></div>
+        <div>
+          <h2 style="margin:0 0 5px">今日の進捗</h2>
+          <div><b id="todayDone">0</b> / <span id="todayGoalText">100</span>問</div>
+          <div class="small" id="goalRemain">あと100問</div>
+        </div>
+      </div>
+      <div class="settings-row" style="margin-top:12px">
+        <label style="flex:1">今日の目標<input id="dailyGoal" type="number" min="1" value="100"></label>
+        <button class="secondary" id="saveGoalBtn">目標保存</button>
+      </div>
+    </div>
+    <div class="card" style="margin:0">
+      <h3 style="margin-top:0">おすすめ</h3>
+      <div id="recommendText" class="small"></div>
+      <div class="quick-actions" style="margin-top:10px">
+        <button id="recommendTestBtn">おすすめ復習</button>
+        <button class="secondary" id="repeatLastBtn">前回条件</button>
+      </div>
+    </div>
+  </div>
+
+<div class="card"><h2 style="margin-top:0">テスト設定</h2>
   <div id="resumeBox" class="notice hidden">
     途中保存されたテストがあります。
     <div class="actions">
@@ -163,6 +239,11 @@ body{padding-bottom:76px}
         <option value="qmark">「？」履歴のみ</option>
         <option value="never">未出題のみ</option>
         <option value="wrong2">×が2回以上</option>
+        <option value="recent">直近7日でミス</option>
+        <option value="fading">忘れかけ</option>
+        <option value="favorite">お気に入り</option>
+        <option value="reading">長文で見た</option>
+        <option value="recommended">おすすめ復習</option>
       </select>
     </label>
   </div>
@@ -172,23 +253,36 @@ body{padding-bottom:76px}
     <button class="secondary" id="showHistoryBtn">学習状況</button>
   </div>
 
-  <details style="margin-top:14px">
-    <summary><b>データ管理</b></summary>
+  
+<details style="margin-top:14px" open>
+  <summary><b>データ管理</b></summary>
+  <div class="notice" style="margin-top:10px">
+    学習データはこの端末のブラウザ内に保存されています。ファイル操作なしで、アプリ内に復元ポイントを作れます。
+  </div>
+  <div class="actions">
+    <button id="createSnapshotBtn">現在の状態を保存</button>
+    <button class="secondary" id="autoBackupNowBtn">自動バックアップを更新</button>
+    <button class="danger" id="clearHistory">学習履歴を消去</button>
+  </div>
+  <div id="backupList" class="backup-list"></div>
+  <details style="margin-top:10px">
+    <summary class="small"><b>非常用の外部バックアップ</b></summary>
     <div class="actions">
-      <button class="secondary" id="exportAllBtn">全データを書き出す</button>
-      <button class="secondary" id="importAllBtn">全データを読み込む</button>
+      <button class="secondary" id="exportAllBtn">ファイルへ書き出す</button>
+      <button class="secondary" id="importAllBtn">ファイルから復元</button>
       <button class="secondary" id="exportWordsBtn">単語データだけ書き出す</button>
       <button class="secondary" id="importWordsBtn">単語データだけ読み込む</button>
       <input id="fileInputAll" type="file" accept=".json" class="hidden">
       <input id="fileInputWords" type="file" accept=".json" class="hidden">
-      <button class="danger" id="clearHistory">学習履歴を消去</button>
     </div>
   </details>
+</details>
 
   <p class="small">
     回答末尾に「？」を付けると、○でも確認対象として別表示します。Enterで次の欄へ移動します。
     入力内容は端末内に自動保存されます。
   </p>
+</div>
 </section>
 
 <section id="test" class="hidden">
@@ -235,9 +329,30 @@ body{padding-bottom:76px}
   <div class="card">
     <h2 style="margin-top:0">学習状況</h2>
     <div id="historySummary" class="stats"></div>
+    <div class="metric-grid">
+      <div class="metric"><b id="metricWords">0</b><span>学習済み単語</span></div>
+      <div class="metric"><b id="metricAttempts">0</b><span>総回答数</span></div>
+      <div class="metric"><b id="metricAccuracy">0%</b><span>○率</span></div>
+      <div class="metric"><b id="metricWeak">0</b><span>苦手単語</span></div>
+      <div class="metric"><b id="metricToday">0</b><span>今日の回答</span></div>
+      <div class="metric"><b id="metricStreak">0日</b><span>学習継続</span></div>
+    </div>
     <div class="actions">
       <button class="secondary" id="historyBackBtn">設定へ戻る</button>
     </div>
+    <h3>直近28日の学習</h3>
+    <div id="studyCalendar" class="calendar"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">分析</h3>
+    <div class="analysis-grid">
+      <div class="analysis-box"><b>忘れ始め</b><ol id="fadingList" class="analysis-list"></ol></div>
+      <div class="analysis-box"><b>あと1回で克服</b><ol id="almostList" class="analysis-list"></ol></div>
+      <div class="analysis-box"><b>最近ミス</b><ol id="recentMissList" class="analysis-list"></ol></div>
+      <div class="analysis-box"><b>克服済み</b><ol id="masteredList" class="analysis-list"></ol></div>
+    </div>
+    <h3>回答数推移</h3><canvas id="volumeChart" class="chart"></canvas>
+    <h3>正答率推移</h3><canvas id="accuracyChart" class="chart"></canvas>
   </div>
   <div class="card">
     <table class="history-table">
@@ -276,13 +391,71 @@ body{padding-bottom:76px}
   <div id="weakListBody"></div>
 </section>
 
+
+<section id="wordmanager" class="hidden">
+  <div class="card">
+    <h2 style="margin-top:0">単語管理</h2>
+    <div class="searchbar">
+      <input id="wordSearch" placeholder="英語・日本語・番号・メモで検索">
+      <button id="clearSearchBtn" class="secondary">消去</button>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <label>絞り込み
+        <select id="wordFilter">
+          <option value="all">すべて</option>
+          <option value="favorite">お気に入り</option>
+          <option value="reading">長文で見た</option>
+          <option value="review">要復習</option>
+          <option value="weak">苦手</option>
+        </select>
+      </label>
+      <label>並び順
+        <select id="wordSort">
+          <option value="number">番号順</option>
+          <option value="weak">苦手度順</option>
+          <option value="reading">長文遭遇回数順</option>
+          <option value="recent">最近更新順</option>
+        </select>
+      </label>
+    </div>
+    <div id="wordManagerSummary" class="small" style="margin-top:10px"></div>
+  </div>
+  <div id="wordManagerBody" class="word-grid"></div>
+</section>
+
+<section id="settings" class="hidden">
+  <div class="card">
+    <h2 style="margin-top:0">表示設定</h2>
+    <div class="grid">
+      <label>表示モード
+        <select id="appearanceSelect">
+          <option value="light">ライト</option>
+          <option value="dark">ダーク</option>
+        </select>
+      </label>
+      <label>テーマカラー
+        <select id="themeSelect">
+          <option value="#111111">ブラック</option>
+          <option value="#315efb">ブルー</option>
+          <option value="#7b4dff">パープル</option>
+          <option value="#198754">グリーン</option>
+          <option value="#c4472d">レッド</option>
+        </select>
+      </label>
+    </div>
+    <div class="notice" style="margin-top:12px">設定はこの端末に保存されます。</div>
+  </div>
+</section>
+
 </main>
 
 
-<nav class="bottom-tabs">
+<nav class="bottom-tabs" style="grid-template-columns:repeat(5,1fr)">
   <button id="tabHome" class="active">ホーム</button>
-  <button id="tabWeak">苦手リスト</button>
-  <button id="tabStats">学習状況</button>
+  <button id="tabWeak">苦手</button>
+  <button id="tabWords">単語</button>
+  <button id="tabStats">統計</button>
+  <button id="tabSettings">設定</button>
 </nav>
 
 <script>
@@ -295,7 +468,13 @@ const STORAGE = {
   draft:"target_draft_v2",
   sessions:"target_sessions_v2",
   manualWeak:"target_manual_weak_v3",
-  removedWeak:"target_removed_weak_v3"
+  removedWeak:"target_removed_weak_v3",
+  snapshots:"target_snapshots_v4",
+  autoBackup:"target_auto_backup_v4",
+  wordMeta:"target_word_meta_v5",
+  dailyGoal:"target_daily_goal_v5",
+  preferences:"target_preferences_v5",
+  lastSettings:"target_last_settings_v5"
 };
 
 let words = loadJSON(STORAGE.words, DEFAULT_WORDS);
@@ -304,6 +483,11 @@ let qhistory = new Set(loadJSON(STORAGE.qmark, []));
 let sessions = loadJSON(STORAGE.sessions, []);
 let manualWeak = new Set(loadJSON(STORAGE.manualWeak, []));
 let removedWeak = new Set(loadJSON(STORAGE.removedWeak, []));
+let snapshots = loadJSON(STORAGE.snapshots, []);
+let wordMeta = loadJSON(STORAGE.wordMeta, {});
+let dailyGoal = +localStorage.getItem(STORAGE.dailyGoal) || 100;
+let preferences = loadJSON(STORAGE.preferences, {appearance:"light",theme:"#111111"});
+let lastSettings = loadJSON(STORAGE.lastSettings, null);
 let current = [];
 let currentRows = [];
 let timerId = null;
@@ -327,7 +511,250 @@ function saveCore(){
   localStorage.setItem(STORAGE.sessions, JSON.stringify(sessions.slice(-200)));
   localStorage.setItem(STORAGE.manualWeak, JSON.stringify([...manualWeak]));
   localStorage.setItem(STORAGE.removedWeak, JSON.stringify([...removedWeak]));
+  localStorage.setItem(STORAGE.wordMeta, JSON.stringify(wordMeta));
 }
+
+function currentDataPackage(){
+  return {
+    version:5,
+    savedAt:new Date().toISOString(),
+    words,
+    stats,
+    qmark:[...qhistory],
+    sessions,
+    manualWeak:[...manualWeak],
+    removedWeak:[...removedWeak],
+    wordMeta,dailyGoal,preferences,lastSettings
+  };
+}
+function applyDataPackage(d){
+  if(!d || !Array.isArray(d.words) || typeof d.stats!=="object") throw new Error("invalid");
+  words=d.words;
+  stats=d.stats||{};
+  qhistory=new Set(d.qmark||[]);
+  sessions=d.sessions||[];
+  manualWeak=new Set(d.manualWeak||[]);
+  removedWeak=new Set(d.removedWeak||[]);
+  wordMeta=d.wordMeta||{};
+  dailyGoal=+d.dailyGoal||100;
+  preferences=d.preferences||{appearance:"light",theme:"#111111"};
+  lastSettings=d.lastSettings||null;
+  localStorage.setItem(STORAGE.dailyGoal,dailyGoal);
+  localStorage.setItem(STORAGE.preferences,JSON.stringify(preferences));
+  saveCore();
+}
+function makeAutoBackup(force=false){
+  const previous=loadJSON(STORAGE.autoBackup,null);
+  const now=Date.now();
+  const oldTime=previous?.savedAt ? new Date(previous.savedAt).getTime() : 0;
+  if(force || !previous || now-oldTime>12*60*60*1000){
+    localStorage.setItem(STORAGE.autoBackup,JSON.stringify(currentDataPackage()));
+  }
+  renderBackupList();
+}
+function createSnapshot(){
+  const label=prompt("保存名を入力してください。","手動保存 "+new Date().toLocaleDateString("ja-JP"));
+  if(label===null)return;
+  snapshots.unshift({
+    id:Date.now(),
+    label:label.trim()||"手動保存",
+    savedAt:new Date().toISOString(),
+    data:currentDataPackage()
+  });
+  snapshots=snapshots.slice(0,8);
+  localStorage.setItem(STORAGE.snapshots,JSON.stringify(snapshots));
+  renderBackupList();
+}
+function restoreSnapshot(kind,id=null){
+  let d=null;
+  if(kind==="auto")d=loadJSON(STORAGE.autoBackup,null);
+  else d=snapshots.find(x=>x.id===id)?.data;
+  if(!d){alert("復元データがありません。");return}
+  if(!confirm("現在の学習データを、この保存状態に戻しますか？"))return;
+  try{
+    applyDataPackage(d);
+    refreshResumeBox();
+    renderBackupList();
+    alert("復元しました。");
+  }catch{alert("保存データを復元できませんでした。")}
+}
+function deleteSnapshot(id){
+  if(!confirm("この復元ポイントを削除しますか？"))return;
+  snapshots=snapshots.filter(x=>x.id!==id);
+  localStorage.setItem(STORAGE.snapshots,JSON.stringify(snapshots));
+  renderBackupList();
+}
+function renderBackupList(){
+  const auto=loadJSON(STORAGE.autoBackup,null);
+  const autoHtml=auto?`
+    <div class="backup-item">
+      <div class="backup-head">
+        <div><div class="backup-name">自動バックアップ</div>
+        <div class="backup-meta">${formatDateTime(auto.savedAt)}・総回答 ${Object.values(auto.stats||{}).reduce((a,s)=>a+(s.attempts||0),0)}回</div></div>
+        <button class="secondary" onclick="restoreSnapshot('auto')">復元</button>
+      </div>
+    </div>`:`<div class="backup-item"><div class="small">自動バックアップはまだありません。</div></div>`;
+  const manual=snapshots.map(x=>`
+    <div class="backup-item">
+      <div class="backup-head">
+        <div><div class="backup-name">${escapeHtml(x.label)}</div>
+        <div class="backup-meta">${formatDateTime(x.savedAt)}</div></div>
+        <div class="actions" style="margin-top:0">
+          <button class="secondary" onclick="restoreSnapshot('manual',${x.id})">復元</button>
+          <button class="danger" onclick="deleteSnapshot(${x.id})">削除</button>
+        </div>
+      </div>
+    </div>`).join("");
+  $("backupList").innerHTML=autoHtml+manual;
+}
+function formatDateTime(iso){
+  if(!iso)return "日時不明";
+  const d=new Date(iso);
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+function dayKey(iso){
+  const d=new Date(iso);
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+function learningStreak(){
+  const days=[...new Set(sessions.map(s=>dayKey(s.date)))];
+  if(!days.length)return 0;
+  let streak=0;
+  const d=new Date();
+  for(let i=0;i<365;i++){
+    const k=`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    if(days.includes(k))streak++;
+    else if(i===0){ d.setDate(d.getDate()-1); continue; }
+    else break;
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+
+
+function metaFor(n){
+  if(!wordMeta[n])wordMeta[n]={favorite:false,readingCount:0,review:false,note:"",updatedAt:""};
+  return wordMeta[n];
+}
+function isFading(n){
+  const s=statFor(n);
+  if(!s.attempts || !s.lastTested)return false;
+  const d=daysSince(s.lastTested);
+  return s.correctStreak>=1 && d>=5 && d<=30 && weaknessScore(n)<70;
+}
+function recommendedWords(){
+  return [...words].sort((a,b)=>{
+    const scoreA=weaknessScore(a.number)+(isFading(a.number)?25:0)+(metaFor(a.number).review?20:0);
+    const scoreB=weaknessScore(b.number)+(isFading(b.number)?25:0)+(metaFor(b.number).review?20:0);
+    return scoreB-scoreA;
+  }).filter(w=>weaknessScore(w.number)>0 || isFading(w.number) || metaFor(w.number).review);
+}
+function todayAnswered(){
+  const k=dayKey(new Date().toISOString());
+  return sessions.filter(s=>dayKey(s.date)===k).reduce((a,s)=>a+(s.count||0),0);
+}
+function updateDashboard(){
+  const done=todayAnswered(),pct=Math.min(100,Math.round(done/dailyGoal*100));
+  $("todayDone").textContent=done;$("todayGoalText").textContent=dailyGoal;
+  $("goalPct").textContent=pct+"%";$("goalRing").style.setProperty("--pct",pct+"%");
+  $("goalRemain").textContent=done>=dailyGoal?"今日の目標達成":`あと${dailyGoal-done}問`;
+  $("dailyGoal").value=dailyGoal;
+  const rec=recommendedWords();
+  $("recommendText").textContent=rec.length?`優先候補は ${rec[0].word} など${Math.min(rec.length,100)}語です。`:"苦手データがまだありません。";
+}
+function applyPreferences(){
+  document.body.classList.toggle("dark",preferences.appearance==="dark");
+  document.documentElement.style.setProperty("--accent",preferences.theme||"#111111");
+  document.documentElement.style.setProperty("--accentText","#fff");
+  $("appearanceSelect").value=preferences.appearance;
+  $("themeSelect").value=preferences.theme;
+}
+function renderWordManager(){
+  const q=normalize($("wordSearch").value);
+  const filter=$("wordFilter").value,sort=$("wordSort").value;
+  let rows=words.filter(w=>{
+    const m=metaFor(w.number);
+    const hay=normalize(`${w.number} ${w.word} ${w.answers.join(" ")} ${m.note||""}`);
+    if(q && !hay.includes(q))return false;
+    if(filter==="favorite"&&!m.favorite)return false;
+    if(filter==="reading"&&!(m.readingCount>0))return false;
+    if(filter==="review"&&!m.review)return false;
+    if(filter==="weak"&&!isWeak(w.number))return false;
+    return true;
+  });
+  rows.sort((a,b)=>{
+    if(sort==="weak")return weaknessScore(b.number)-weaknessScore(a.number);
+    if(sort==="reading")return (metaFor(b.number).readingCount||0)-(metaFor(a.number).readingCount||0);
+    if(sort==="recent")return new Date(metaFor(b.number).updatedAt||0)-new Date(metaFor(a.number).updatedAt||0);
+    return a.number-b.number;
+  });
+  $("wordManagerSummary").textContent=`${rows.length}語を表示`;
+  $("wordManagerBody").innerHTML=rows.map(w=>{
+    const m=metaFor(w.number);
+    return `<div class="word-card">
+      <div class="word-top"><div><b>${w.number} ${escapeHtml(w.word)}</b><div class="small">${w.answers.map(escapeHtml).join("／")}</div></div>
+      <div><button class="icon-btn ${m.favorite?"on":""}" onclick="toggleWordFlag(${w.number},'favorite')">★</button>
+      <button class="icon-btn ${m.review?"on":""}" onclick="toggleWordFlag(${w.number},'review')">復習</button></div></div>
+      <div style="margin-top:8px"><span class="tag">苦手度 ${weaknessScore(w.number)}</span><span class="tag">長文 ${m.readingCount||0}回</span></div>
+      <div class="actions"><button class="secondary" onclick="addReading(${w.number})">長文で見た＋1</button><button class="secondary" onclick="testOneWeak(${w.number})">1問テスト</button></div>
+      <textarea rows="2" placeholder="メモ" onchange="saveWordNote(${w.number},this.value)">${escapeHtml(m.note||"")}</textarea>
+    </div>`;
+  }).join("") || `<div class="card empty-state">該当する単語はありません。</div>`;
+}
+function toggleWordFlag(n,key){
+  const m=metaFor(n);m[key]=!m[key];m.updatedAt=new Date().toISOString();saveCore();renderWordManager();
+}
+function addReading(n){
+  const m=metaFor(n);m.readingCount=(m.readingCount||0)+1;m.updatedAt=new Date().toISOString();saveCore();renderWordManager();
+}
+function saveWordNote(n,v){
+  const m=metaFor(n);m.note=v;m.updatedAt=new Date().toISOString();saveCore();
+}
+function renderCalendar(){
+  const box=$("studyCalendar"); if(!box)return;
+  const counts={};sessions.forEach(s=>{const k=dayKey(s.date);counts[k]=(counts[k]||0)+(s.count||0)});
+  let out="";
+  const now=new Date();
+  for(let i=27;i>=0;i--){
+    const d=new Date(now);d.setDate(now.getDate()-i);
+    const k=dayKey(d.toISOString()),c=counts[k]||0;
+    const level=c>=300?4:c>=150?3:c>=50?2:c>0?1:0;
+    out+=`<div class="cal-day l${level}" title="${k}: ${c}問">${d.getDate()}</div>`;
+  }
+  box.innerHTML=out;
+}
+function topList(items,id){
+  $(id).innerHTML=items.slice(0,5).map(w=>`<li>${w.number} ${escapeHtml(w.word)}</li>`).join("")||"<li>該当なし</li>";
+}
+function renderAnalysis(){
+  topList(words.filter(w=>isFading(w.number)).sort((a,b)=>daysSince(statFor(b.number).lastTested)-daysSince(statFor(a.number).lastTested)),"fadingList");
+  topList(words.filter(w=>statFor(w.number).correctStreak===2 && isWeak(w.number)),"almostList");
+  topList(words.filter(w=>statFor(w.number).lastMistakeAt).sort((a,b)=>new Date(statFor(b.number).lastMistakeAt)-new Date(statFor(a.number).lastMistakeAt)),"recentMissList");
+  topList(words.filter(w=>removedWeak.has(w.number) && statFor(w.number).correctStreak>=3),"masteredList");
+  drawCharts();
+}
+function dailySeries(days=14){
+  const map={};
+  sessions.forEach(s=>{const k=dayKey(s.date);if(!map[k])map[k]={count:0,correct:0,partial:0,wrong:0};map[k].count+=s.count||0;map[k].correct+=s.correct||0;map[k].partial+=s.partial||0;map[k].wrong+=s.wrong||0});
+  const out=[],now=new Date();
+  for(let i=days-1;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);const k=dayKey(d.toISOString());out.push({label:`${d.getMonth()+1}/${d.getDate()}`,...(map[k]||{count:0,correct:0,partial:0,wrong:0})});}
+  return out;
+}
+function drawLine(canvas,values,labels,maxVal){
+  const dpr=window.devicePixelRatio||1,w=canvas.clientWidth,h=canvas.clientHeight;
+  canvas.width=w*dpr;canvas.height=h*dpr;const c=canvas.getContext("2d");c.scale(dpr,dpr);c.clearRect(0,0,w,h);
+  c.strokeStyle=getComputedStyle(document.body).color;c.globalAlpha=.22;c.beginPath();c.moveTo(35,10);c.lineTo(35,h-28);c.lineTo(w-8,h-28);c.stroke();c.globalAlpha=1;
+  c.strokeStyle=preferences.theme;c.lineWidth=3;c.beginPath();
+  values.forEach((v,i)=>{const x=35+i*(w-48)/Math.max(1,values.length-1),y=h-28-(v/Math.max(1,maxVal))*(h-45);i?c.lineTo(x,y):c.moveTo(x,y)});
+  c.stroke();c.fillStyle=getComputedStyle(document.body).color;c.font="10px sans-serif";
+  labels.forEach((l,i)=>{if(i%3===0)c.fillText(l,28+i*(w-48)/Math.max(1,labels.length-1),h-10)});
+}
+function drawCharts(){
+  const s=dailySeries(),labels=s.map(x=>x.label);
+  drawLine($("volumeChart"),s.map(x=>x.count),labels,Math.max(100,...s.map(x=>x.count)));
+  drawLine($("accuracyChart"),s.map(x=>{const t=x.correct+x.partial+x.wrong;return t?Math.round(x.correct/t*100):0}),labels,100);
+}
+
 function normalize(s){
   return (s||"")
     .replace(/[？?]\s*$/,"")
@@ -390,10 +817,12 @@ function isWeak(n){
   return manualWeak.has(n) || weaknessScore(n)>=30;
 }
 function switchView(id){
-  ["setup","test","results","history","weaklist"].forEach(x=>$(x).classList.toggle("hidden",x!==id));
+  ["setup","test","results","history","weaklist","wordmanager","settings"].forEach(x=>$(x).classList.toggle("hidden",x!==id));
   $("tabHome").classList.toggle("active",["setup","test","results"].includes(id));
   $("tabWeak").classList.toggle("active",id==="weaklist");
   $("tabStats").classList.toggle("active",id==="history");
+  $("tabWords").classList.toggle("active",id==="wordmanager");
+  $("tabSettings").classList.toggle("active",id==="settings");
   window.scrollTo({top:0,behavior:"smooth"});
 }
 function buildPool(){
@@ -403,6 +832,11 @@ function buildPool(){
   if(mode==="qmark") pool=pool.filter(x=>qhistory.has(x.number));
   if(mode==="never") pool=pool.filter(x=>statFor(x.number).attempts===0);
   if(mode==="wrong2") pool=pool.filter(x=>statFor(x.number).wrong>=2);
+  if(mode==="recent") pool=pool.filter(x=>statFor(x.number).lastMistakeAt && daysSince(statFor(x.number).lastMistakeAt)<=7);
+  if(mode==="fading") pool=pool.filter(x=>isFading(x.number));
+  if(mode==="favorite") pool=pool.filter(x=>metaFor(x.number).favorite);
+  if(mode==="reading") pool=pool.filter(x=>(metaFor(x.number).readingCount||0)>0);
+  if(mode==="recommended") pool=recommendedWords();
   if($("order").value==="random") pool=shuffle([...pool]);
   return pool.slice(0,Math.max(1,+$("count").value||100));
 }
@@ -548,6 +982,7 @@ function submitTest(auto=false){
     correct:counts["○"],partial:counts["△"],wrong:counts["×"]
   });
   saveCore();
+  makeAutoBackup();
   clearDraft();
 
   $("stats").textContent=
@@ -599,6 +1034,7 @@ function overrideGrade(n,newGrade){
   }
   lastBad=currentRows.filter(r=>r.grade!=="○");
   saveCore();
+  makeAutoBackup();
   renderBadResults();
 }
 function setActiveTab(){
@@ -675,6 +1111,14 @@ function showHistory(){
   const correct=all.reduce((a,x)=>a+x.s.correct,0);
   $("historySummary").textContent=
     `学習済み ${all.length}語　総回答 ${attempts}回　○率 ${attempts?Math.round(correct/attempts*100):0}%`;
+  const todayKey=dayKey(new Date().toISOString());
+  const today=sessions.filter(x=>dayKey(x.date)===todayKey).reduce((a,x)=>a+(x.count||0),0);
+  $("metricWords").textContent=all.length;
+  $("metricAttempts").textContent=attempts;
+  $("metricAccuracy").textContent=`${attempts?Math.round(correct/attempts*100):0}%`;
+  $("metricWeak").textContent=words.filter(w=>isWeak(w.number)).length;
+  $("metricToday").textContent=today;
+  $("metricStreak").textContent=`${learningStreak()}日`;
   $("historyBody").innerHTML=all
     .sort((a,b)=>(b.s.wrong+b.s.partial)-(a.s.wrong+a.s.partial)||a.w.number-b.w.number)
     .map(({w,s})=>`<tr>
@@ -683,7 +1127,7 @@ function showHistory(){
       <td>${s.attempts}</td><td>${s.correct}</td><td>${s.partial}</td><td>${s.wrong}</td>
       <td>${escapeHtml(s.lastGrade||"-")}</td>
     </tr>`).join("");
-  switchView("history");
+  renderCalendar();renderAnalysis();switchView("history");
 }
 function downloadJSON(name,obj){
   const blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json"});
@@ -717,6 +1161,10 @@ $("tabAll").onclick=()=>{activeFilter="all";setActiveTab();renderBadResults()};
 $("tabMid").onclick=()=>{activeFilter="△";setActiveTab();renderBadResults()};
 $("tabBad").onclick=()=>{activeFilter="×";setActiveTab();renderBadResults()};
 
+
+$("createSnapshotBtn").onclick=createSnapshot;
+$("autoBackupNowBtn").onclick=()=>{makeAutoBackup(true);alert("自動バックアップを更新しました。")};
+
 $("exportAllBtn").onclick=()=>downloadJSON("target_batch_test_backup.json",{
   version:3,exportedAt:new Date().toISOString(),words,stats,qmark:[...qhistory],sessions,manualWeak:[...manualWeak],removedWeak:[...removedWeak]
 });
@@ -729,8 +1177,7 @@ $("fileInputAll").onchange=async e=>{
   try{
     const d=JSON.parse(await f.text());
     if(!Array.isArray(d.words)||typeof d.stats!=="object")throw 0;
-    words=d.words;stats=d.stats||{};qhistory=new Set(d.qmark||[]);sessions=d.sessions||[];manualWeak=new Set(d.manualWeak||[]);removedWeak=new Set(d.removedWeak||[]);
-    saveCore();alert("全データを復元しました。");
+    applyDataPackage(d);makeAutoBackup(true);alert("全データを復元しました。");
   }catch{alert("バックアップ形式が正しくありません。")}
   e.target.value="";
 };
@@ -744,13 +1191,14 @@ $("fileInputWords").onchange=async e=>{
   e.target.value="";
 };
 $("clearHistory").onclick=()=>{
-  if(confirm("学習履歴・苦手履歴・？履歴をすべて消しますか？")){
-    stats={};qhistory.clear();sessions=[];manualWeak.clear();removedWeak.clear();saveCore();clearDraft();alert("消去しました。");
+  if(confirm("学習履歴・苦手履歴・？履歴をすべて消しますか？\n消去直前の状態は自動バックアップに残します。")){
+    makeAutoBackup(true);
+    stats={};qhistory.clear();sessions=[];manualWeak.clear();removedWeak.clear();saveCore();clearDraft();renderBackupList();alert("消去しました。");
   }
 };
 
 
-$("tabHome").onclick=()=>switchView("setup");
+$("tabHome").onclick=()=>{updateDashboard();switchView("setup")};
 $("tabWeak").onclick=showWeakList;
 $("tabStats").onclick=showHistory;
 $("weakSort").onchange=renderWeakList;
@@ -762,8 +1210,25 @@ $("testWeakListBtn").onclick=()=>{
   startTest(pool.slice(0,Math.max(1,+$("count").value||100)));
 };
 
+
+$("tabWords").onclick=()=>{renderWordManager();switchView("wordmanager")};
+$("tabSettings").onclick=()=>switchView("settings");
+$("wordSearch").oninput=renderWordManager;
+$("wordFilter").onchange=renderWordManager;
+$("wordSort").onchange=renderWordManager;
+$("clearSearchBtn").onclick=()=>{$("wordSearch").value="";renderWordManager()};
+$("saveGoalBtn").onclick=()=>{dailyGoal=Math.max(1,+$("dailyGoal").value||100);localStorage.setItem(STORAGE.dailyGoal,dailyGoal);updateDashboard()};
+$("recommendTestBtn").onclick=()=>{const p=recommendedWords().slice(0,Math.max(1,+$("count").value||100));if(!p.length)return alert("おすすめ対象がありません。");startTest(p)};
+$("repeatLastBtn").onclick=()=>{if(!lastSettings)return alert("前回条件がありません。");$("startNo").value=lastSettings.start;$("endNo").value=lastSettings.end;$("count").value=lastSettings.count;$("minutes").value=lastSettings.minutes;$("order").value=lastSettings.order;$("mode").value=lastSettings.mode;alert("前回条件を設定しました。")};
+$("appearanceSelect").onchange=()=>{preferences.appearance=$("appearanceSelect").value;localStorage.setItem(STORAGE.preferences,JSON.stringify(preferences));applyPreferences()};
+$("themeSelect").onchange=()=>{preferences.theme=$("themeSelect").value;localStorage.setItem(STORAGE.preferences,JSON.stringify(preferences));applyPreferences();drawCharts()};
+
 window.addEventListener("beforeunload",()=>{if(!$("test").classList.contains("hidden"))saveDraft()});
 refreshResumeBox();
+makeAutoBackup();
+renderBackupList();
+applyPreferences();
+updateDashboard();
 </script>
 </body>
 </html>
