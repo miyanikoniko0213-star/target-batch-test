@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Target Batch Test</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:#111;background:#f5f5f7}
+*{box-sizing:border-box} body{margin:0} button,input,select,textarea{font:inherit}
+header{position:sticky;top:0;z-index:4;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-bottom:1px solid #ddd;padding:12px 16px}
+h1{font-size:20px;margin:0}.wrap{max-width:900px;margin:auto;padding:16px}
+.card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:16px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+label{font-size:13px;color:#555;display:block}input,select,textarea{width:100%;border:1px solid #bbb;border-radius:10px;padding:11px;background:#fff}
+button{border:0;border-radius:10px;padding:11px 14px;background:#111;color:white;font-weight:700}
+button.secondary{background:#e9e9ec;color:#111}button.danger{background:#a30000}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.qrow{display:grid;grid-template-columns:52px 150px 1fr;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eee}
+.qnum{color:#666;text-align:right}.word{font-weight:700;font-size:18px}
+.qrow input{padding:10px}.timer{font-variant-numeric:tabular-nums;font-weight:800}
+.result{border-left:5px solid #999;padding:10px 12px;margin:8px 0;background:#fafafa;border-radius:8px}
+.result.bad{border-left-color:#b00020}.result.mid{border-left-color:#c77c00}.result.qmark{border-left-color:#0057b8}
+.badge{display:inline-block;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:800;background:#eee;margin-right:6px}
+.stats{font-size:20px;font-weight:800}.hidden{display:none!important}
+.small{font-size:12px;color:#666}.sticky-submit{position:sticky;bottom:10px;display:flex;justify-content:flex-end;pointer-events:none}.sticky-submit button{pointer-events:auto;box-shadow:0 5px 20px #999}
+@media(max-width:650px){.grid{grid-template-columns:1fr 1fr}.qrow{grid-template-columns:42px 100px 1fr}.word{font-size:16px}.wrap{padding:10px}.card{padding:12px}}
+</style>
+</head>
+<body>
+<header><div style="max-width:900px;margin:auto;display:flex;justify-content:space-between;align-items:center"><h1>Target Batch Test</h1><div id="timerTop" class="timer"></div></div></header>
+<main class="wrap">
+<section id="setup" class="card">
+<h2 style="margin-top:0">テスト設定</h2>
+<div class="grid">
+<label>開始番号<input id="startNo" type="number" value="301"></label>
+<label>終了番号<input id="endNo" type="number" value="400"></label>
+<label>出題数<input id="count" type="number" value="100" min="1"></label>
+<label>制限時間（分・0で無制限）<input id="minutes" type="number" value="5" min="0"></label>
+<label>出題順<select id="order"><option value="normal">番号順</option><option value="random">ランダム</option></select></label>
+<label>出題対象<select id="mode"><option value="range">指定範囲</option><option value="weak">苦手単語のみ</option><option value="qmark">「？」履歴のみ</option></select></label>
+</div>
+<div class="actions">
+<button id="startBtn">テスト開始</button>
+<button class="secondary" id="exportBtn">単語データを書き出す</button>
+<button class="secondary" id="importBtn">単語データを読み込む</button>
+<input id="fileInput" type="file" accept=".json" class="hidden">
+<button class="danger" id="clearHistory">履歴を消去</button>
+</div>
+<p class="small">回答末尾に「？」を付けると、○でも確認対象として別表示します。Enterで次の欄へ移動します。</p>
+</section>
+
+<section id="test" class="hidden">
+<div class="card"><div id="progress"></div><div id="questions"></div></div>
+<div class="sticky-submit"><button id="submitBtn">採点する</button></div>
+</section>
+
+<section id="results" class="hidden">
+<div class="card">
+<div id="stats" class="stats"></div>
+<div class="actions"><button id="retryWeak">今回の△・×だけ再テスト</button><button class="secondary" id="backBtn">設定へ戻る</button></div>
+</div>
+<div id="reviewQ" class="card hidden"><h2>○だが「？」付き</h2><div id="qmarkResults"></div></div>
+<div id="reviewBad" class="card"><h2>△・×</h2><div id="badResults"></div></div>
+</section>
+</main>
+<script>
+const DEFAULT_WORDS = [{"number": 301, "word": "predict", "answers": ["予測する", "予言する", "予想する"]}, {"number": 302, "word": "examine", "answers": ["調べる", "検査する", "診察する", "考察する"]}, {"number": 303, "word": "trust", "answers": ["信頼する", "信用する", "信頼", "信用"]}, {"number": 304, "word": "stick", "answers": ["くっつく", "貼り付ける", "突き刺す", "棒", "固執する"]}, {"number": 305, "word": "emerge", "answers": ["現れる", "出現する", "明らかになる", "浮かび上がる"]}, {"number": 306, "word": "vary", "answers": ["異なる", "変わる", "変化する"]}, {"number": 307, "word": "release", "answers": ["解放する", "放出する", "発売する", "発表する", "解放"]}, {"number": 308, "word": "divide", "answers": ["分ける", "分割する", "割る", "隔てる"]}, {"number": 309, "word": "enable", "answers": ["可能にする", "できるようにする"]}, {"number": 310, "word": "judge", "answers": ["判断する", "裁く", "裁判官", "判定する"]}, {"number": 311, "word": "rely", "answers": ["頼る", "依存する", "信頼する"]}, {"number": 312, "word": "engage", "answers": ["従事する", "参加する", "引き込む", "雇う"]}, {"number": 313, "word": "shift", "answers": ["移す", "移動する", "変える", "変化", "交代"]}, {"number": 314, "word": "adopt", "answers": ["採用する", "採択する", "養子にする"]}, {"number": 315, "word": "acquire", "answers": ["獲得する", "得る", "習得する", "身につける"]}, {"number": 316, "word": "expand", "answers": ["拡大する", "広げる", "膨張する"]}, {"number": 317, "word": "refuse", "answers": ["拒む", "拒否する", "断る"]}, {"number": 318, "word": "strike", "answers": ["打つ", "襲う", "ぶつかる", "ストライキ", "印象を与える"]}, {"number": 319, "word": "repeat", "answers": ["繰り返す", "反復する"]}, {"number": 320, "word": "consume", "answers": ["消費する", "食べる", "使い果たす"]}, {"number": 321, "word": "confuse", "answers": ["混乱させる", "困惑させる", "取り違える"]}, {"number": 322, "word": "select", "answers": ["選ぶ", "選択する", "選び出す"]}, {"number": 323, "word": "evolve", "answers": ["進化する", "発展する", "徐々に発達する"]}, {"number": 324, "word": "convince", "answers": ["納得させる", "確信させる", "説得する"]}, {"number": 325, "word": "recall", "answers": ["思い出す", "呼び戻す", "回収する", "記憶"]}, {"number": 326, "word": "destroy", "answers": ["破壊する", "滅ぼす"]}, {"number": 327, "word": "preserve", "answers": ["保存する", "保護する", "維持する"]}, {"number": 328, "word": "organize", "answers": ["組織する", "整理する", "計画する"]}, {"number": 329, "word": "warn", "answers": ["警告する", "注意する"]}, {"number": 330, "word": "address", "answers": ["対処する", "取り組む", "演説する", "住所", "宛てる"]}, {"number": 331, "word": "extend", "answers": ["延長する", "伸ばす", "広げる", "及ぶ"]}, {"number": 332, "word": "appreciate", "answers": ["感謝する", "正しく理解する", "高く評価する", "鑑賞する"]}, {"number": 333, "word": "target", "answers": ["目標", "標的", "対象", "狙う"]}, {"number": 334, "word": "element", "answers": ["要素", "成分", "元素"]}, {"number": 335, "word": "principle", "answers": ["原理", "原則", "主義"]}, {"number": 336, "word": "phenomenon", "answers": ["現象"]}, {"number": 337, "word": "atmosphere", "answers": ["雰囲気", "大気", "空気"]}, {"number": 338, "word": "origin", "answers": ["起源", "由来", "出身"]}, {"number": 339, "word": "personality", "answers": ["性格", "個性", "人格"]}, {"number": 340, "word": "capacity", "answers": ["能力", "容量", "収容力"]}, {"number": 341, "word": "profit", "answers": ["利益", "収益", "得をする"]}, {"number": 342, "word": "circumstance", "answers": ["状況", "事情", "境遇"]}, {"number": 343, "word": "manner", "answers": ["方法", "やり方", "態度", "作法"]}, {"number": 344, "word": "threat", "answers": ["脅威", "脅迫", "兆し"]}, {"number": 345, "word": "resident", "answers": ["住民", "居住者"]}, {"number": 346, "word": "wealth", "answers": ["富", "財産", "豊富"]}, {"number": 347, "word": "institution", "answers": ["機関", "制度", "施設"]}, {"number": 348, "word": "authority", "answers": ["権威", "権限", "当局"]}, {"number": 349, "word": "vote", "answers": ["投票", "投票する", "票"]}, {"number": 350, "word": "sight", "answers": ["光景", "視力", "見ること", "名所"]}, {"number": 351, "word": "campaign", "answers": ["運動", "キャンペーン", "選挙運動"]}, {"number": 352, "word": "fund", "answers": ["資金", "基金", "資金を提供する"]}, {"number": 353, "word": "web", "answers": ["網", "ウェブ", "クモの巣"]}, {"number": 354, "word": "symbol", "answers": ["象徴", "記号", "シンボル"]}, {"number": 355, "word": "analysis", "answers": ["分析", "解析"]}, {"number": 356, "word": "version", "answers": ["版", "型", "バージョン"]}, {"number": 357, "word": "perspective", "answers": ["観点", "視点", "見方", "遠近法"]}, {"number": 358, "word": "crisis", "answers": ["危機"]}, {"number": 359, "word": "disaster", "answers": ["災害", "惨事"]}, {"number": 360, "word": "lecture", "answers": ["講義", "講演", "説教"]}, {"number": 361, "word": "psychology", "answers": ["心理学", "心理"]}, {"number": 362, "word": "gender", "answers": ["性別", "ジェンダー"]}, {"number": 363, "word": "custom", "answers": ["習慣", "慣習", "税関", "特注の"]}, {"number": 364, "word": "court", "answers": ["裁判所", "法廷", "中庭", "コート"]}, {"number": 365, "word": "desert", "answers": ["砂漠", "見捨てる"]}, {"number": 366, "word": "soil", "answers": ["土", "土壌", "汚す"]}, {"number": 367, "word": "agriculture", "answers": ["農業"]}, {"number": 368, "word": "fossil", "answers": ["化石"]}, {"number": 369, "word": "document", "answers": ["文書", "書類", "記録する"]}, {"number": 370, "word": "vocabulary", "answers": ["語彙", "単語"]}, {"number": 371, "word": "intelligent", "answers": ["知能の高い", "賢い", "知的な"]}, {"number": 372, "word": "conscious", "answers": ["意識している", "意識のある", "気づいている"]}, {"number": 373, "word": "capable", "answers": ["能力がある", "可能な", "有能な"]}, {"number": 374, "word": "accurate", "answers": ["正確な", "的確な"]}, {"number": 375, "word": "fundamental", "answers": ["基本的な", "根本的な", "基礎"]}, {"number": 376, "word": "artificial", "answers": ["人工の", "人造の", "不自然な"]}, {"number": 377, "word": "firm", "answers": ["しっかりした", "堅い", "断固とした", "会社"]}, {"number": 378, "word": "overall", "answers": ["全体的な", "総合的な", "全体として"]}, {"number": 379, "word": "rural", "answers": ["田舎の", "農村の"]}, {"number": 380, "word": "military", "answers": ["軍事の", "軍隊の", "軍"]}, {"number": 381, "word": "nuclear", "answers": ["核の", "原子力の"]}, {"number": 382, "word": "biological", "answers": ["生物学的な", "生物の"]}, {"number": 383, "word": "constant", "answers": ["絶え間ない", "一定の", "不変の", "定数"]}, {"number": 384, "word": "severe", "answers": ["厳しい", "深刻な", "激しい"]}, {"number": 385, "word": "visual", "answers": ["視覚の", "目に見える"]}, {"number": 386, "word": "enormous", "answers": ["莫大な", "巨大な"]}, {"number": 387, "word": "convenient", "answers": ["便利な", "都合のよい"]}, {"number": 388, "word": "domestic", "answers": ["国内の", "家庭の", "飼いならされた"]}, {"number": 389, "word": "mass", "answers": ["大量の", "大衆", "塊", "質量"]}, {"number": 390, "word": "typical", "answers": ["典型的な", "代表的な"]}, {"number": 391, "word": "overseas", "answers": ["海外へ", "海外の"]}, {"number": 392, "word": "nevertheless", "answers": ["それにもかかわらず", "それでも"]}, {"number": 393, "word": "moreover", "answers": ["そのうえ", "さらに"]}, {"number": 394, "word": "otherwise", "answers": ["さもなければ", "その他の点では", "別の方法で"]}, {"number": 395, "word": "throughout", "answers": ["至る所に", "ずっと", "全体を通して"]}, {"number": 396, "word": "within", "answers": ["以内に", "内側に", "の中で"]}, {"number": 397, "word": "despite", "answers": ["にもかかわらず"]}, {"number": 398, "word": "unlike", "answers": ["と違って", "似ていない"]}, {"number": 399, "word": "per", "answers": ["につき", "ごとに"]}, {"number": 400, "word": "via", "answers": ["経由で", "によって"]}];
+let words = JSON.parse(localStorage.getItem("target_words") || "null") || DEFAULT_WORDS;
+let weak = new Set(JSON.parse(localStorage.getItem("target_weak") || "[]"));
+let qhistory = new Set(JSON.parse(localStorage.getItem("target_qmark") || "[]"));
+let current=[], timerId=null, endAt=null, lastBad=[];
+
+const $=id=>document.getElementById(id);
+const normalize=s=>(s||"").replace(/[？?]/g,"").replace(/\s+/g,"").replace(/[。、・，,]/g,"").toLowerCase();
+function grade(answer,candidates){
+  const a=normalize(answer);
+  if(!a)return "×";
+  const cs=candidates.map(normalize).filter(Boolean);
+  if(cs.some(c=>a===c || a.includes(c) || c.includes(a) && a.length>=2))return "○";
+  // 部分一致は△。候補が複数語の場合の緩い救済。
+  if(cs.some(c=>{
+    const chunks=c.split(/する|の|な|に|で|を|と/).filter(x=>x.length>=2);
+    return chunks.some(x=>a.includes(x));
+  }))return "△";
+  return "×";
+}
+function save(){
+ localStorage.setItem("target_words",JSON.stringify(words));
+ localStorage.setItem("target_weak",JSON.stringify([...weak]));
+ localStorage.setItem("target_qmark",JSON.stringify([...qhistory]));
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startTest(custom=null){
+ clearInterval(timerId);
+ let pool;
+ if(custom){pool=custom}
+ else{
+   const mode=$("mode").value, s=+$("startNo").value, e=+$("endNo").value;
+   pool=words.filter(x=>x.number>=s&&x.number<=e);
+   if(mode==="weak") pool=pool.filter(x=>weak.has(x.number));
+   if(mode==="qmark") pool=pool.filter(x=>qhistory.has(x.number));
+ }
+ if($("order").value==="random")pool=shuffle([...pool]);
+ current=pool.slice(0,Math.max(1,+$("count").value||100));
+ if(!current.length){alert("条件に合う単語がありません。");return}
+ $("setup").classList.add("hidden");$("results").classList.add("hidden");$("test").classList.remove("hidden");
+ $("questions").innerHTML=current.map((x,i)=>`<div class="qrow"><div class="qnum">${x.number}</div><div class="word">${x.word}</div><input id="a${i}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="日本語"></div>`).join("");
+ document.querySelectorAll("#questions input").forEach((el,i)=>el.addEventListener("keydown",e=>{
+   if(e.key==="Enter"){e.preventDefault();document.getElementById("a"+(i+1))?.focus()}
+ }));
+ $("progress").textContent=`${current.length}問`;
+ const mins=+$("minutes").value||0;
+ if(mins>0){endAt=Date.now()+mins*60000;tick();timerId=setInterval(tick,250)}
+ else{$("timerTop").textContent=""}
+ setTimeout(()=>$("a0").focus(),50);
+}
+function tick(){
+ const left=Math.max(0,endAt-Date.now()), sec=Math.ceil(left/1000);
+ $("timerTop").textContent=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`;
+ if(left<=0){clearInterval(timerId);submitTest(true)}
+}
+function submitTest(auto=false){
+ clearInterval(timerId);$("timerTop").textContent="";
+ const rows=current.map((x,i)=>{
+   const raw=$("a"+i).value.trim(), hasQ=/[？?]\s*$/.test(raw), g=grade(raw,x.answers);
+   if(g!=="○")weak.add(x.number); else weak.delete(x.number);
+   if(hasQ)qhistory.add(x.number); else qhistory.delete(x.number);
+   return {...x,raw,hasQ,grade:g};
+ });
+ save();
+ const counts={"○":0,"△":0,"×":0};rows.forEach(r=>counts[r.grade]++);
+ lastBad=rows.filter(r=>r.grade!=="○");
+ $("stats").textContent=`○ ${counts["○"]} / △ ${counts["△"]} / × ${counts["×"]}　正答率 ${Math.round(counts["○"]/rows.length*100)}%${auto?"（時間切れで自動提出）":""}`;
+ const qrows=rows.filter(r=>r.grade==="○"&&r.hasQ);
+ $("reviewQ").classList.toggle("hidden",!qrows.length);
+ $("qmarkResults").innerHTML=qrows.map(renderResult).join("");
+ $("badResults").innerHTML=lastBad.length?lastBad.map(renderResult).join(""):"△・×はありません。";
+ $("test").classList.add("hidden");$("results").classList.remove("hidden");
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+function renderResult(r){
+ const cls=r.grade==="×"?"bad":r.grade==="△"?"mid":"qmark";
+ return `<div class="result ${cls}" data-n="${r.number}">
+ <div><span class="badge">${r.grade}</span><b>${r.number} ${r.word}</b></div>
+ <div>自分の回答：${escapeHtml(r.raw)||"（空欄）"}</div>
+ <div>模範解答：${r.answers.join("／")}</div>
+ <div class="actions">
+  <button class="secondary" onclick="overrideGrade(${r.number},'○')">○に変更</button>
+  <button class="secondary" onclick="overrideGrade(${r.number},'△')">△に変更</button>
+  <button class="secondary" onclick="overrideGrade(${r.number},'×')">×に変更</button>
+ </div></div>`;
+}
+function overrideGrade(n,g){
+ if(g==="○")weak.delete(n);else weak.add(n);save();
+ const el=document.querySelector(`[data-n="${n}"]`);
+ if(el){el.querySelector(".badge").textContent=g;el.className="result "+(g==="×"?"bad":g==="△"?"mid":"qmark")}
+}
+function escapeHtml(s){return (s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+$("startBtn").onclick=()=>startTest();
+$("submitBtn").onclick=()=>submitTest(false);
+$("backBtn").onclick=()=>{$("results").classList.add("hidden");$("setup").classList.remove("hidden")};
+$("retryWeak").onclick=()=>startTest(lastBad.map(r=>words.find(w=>w.number===r.number)).filter(Boolean));
+$("exportBtn").onclick=()=>{
+ const blob=new Blob([JSON.stringify(words,null,2)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="target_words.json";a.click();URL.revokeObjectURL(a.href)
+};
+$("importBtn").onclick=()=>$("fileInput").click();
+$("fileInput").onchange=async e=>{
+ const f=e.target.files[0];if(!f)return;
+ try{
+  const d=JSON.parse(await f.text());
+  if(!Array.isArray(d)||!d.every(x=>x.number&&x.word&&Array.isArray(x.answers)))throw 0;
+  words=d;save();alert(`${d.length}語を読み込みました。`);
+ }catch{alert("JSON形式が正しくありません。")}
+};
+$("clearHistory").onclick=()=>{if(confirm("苦手・？履歴をすべて消しますか？")){weak.clear();qhistory.clear();save();alert("消去しました。")}};
+</script>
+</body></html>
