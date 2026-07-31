@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f5f5f7">
-<title>Target Batch Test Ver.2</title>
+<title>Target Batch Test Ver.3</title>
 <style>
 :root{
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
@@ -96,12 +96,37 @@ button:disabled{opacity:.45;cursor:not-allowed}
   .card{padding:12px}
   .top-status{gap:7px;font-size:12px}
 }
+
+.bottom-tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;
+  display:grid;grid-template-columns:repeat(3,1fr);
+  background:rgba(255,255,255,.96);backdrop-filter:blur(14px);
+  border-top:1px solid #d8d8dc;padding:7px max(8px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+}
+.bottom-tabs button{
+  background:transparent;color:#666;padding:8px 4px;border-radius:9px;font-size:13px
+}
+.bottom-tabs button.active{background:#111;color:#fff}
+body{padding-bottom:76px}
+.weak-card{
+  border:1px solid #ddd;border-radius:13px;padding:12px;margin:9px 0;background:#fff
+}
+.weak-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.weak-title{font-size:18px;font-weight:850}
+.weak-score{font-weight:900;font-size:15px}
+.weak-bar{height:8px;background:#e7e7ea;border-radius:999px;overflow:hidden;margin:8px 0}
+.weak-bar>div{height:100%;background:#111}
+.weak-meta{font-size:13px;color:#555;line-height:1.6}
+.weak-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.weak-controls button{padding:8px 10px}
+.empty-state{padding:28px 12px;text-align:center;color:#666}
+
 </style>
 </head>
 <body>
 <header>
   <div class="header-inner">
-    <div style="display:flex;align-items:center;gap:8px"><h1>Target Batch Test</h1><span style="font-size:12px;font-weight:800;background:#111;color:#fff;padding:3px 8px;border-radius:999px">Ver.2</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><h1>Target Batch Test</h1><span style="font-size:12px;font-weight:800;background:#111;color:#fff;padding:3px 8px;border-radius:999px">Ver.3</span></div>
     <div class="top-status">
       <span id="unansweredTop"></span>
       <span id="timerTop" class="timer"></span>
@@ -216,12 +241,49 @@ button:disabled{opacity:.45;cursor:not-allowed}
   </div>
   <div class="card">
     <table class="history-table">
-      <thead><tr><th>単語</th><th>回数</th><th>○</th><th>△</th><th>×</th><th>最終</th></tr></thead>
+      <thead><tr><th>単語</th><th>苦手度</th><th>回数</th><th>○</th><th>△</th><th>×</th><th>最終</th></tr></thead>
       <tbody id="historyBody"></tbody>
     </table>
   </div>
 </section>
+
+<section id="weaklist" class="hidden">
+  <div class="card">
+    <h2 style="margin-top:0">苦手リスト</h2>
+    <div id="weakSummary" class="stats"></div>
+    <div class="grid" style="margin-top:12px">
+      <label>並び順
+        <select id="weakSort">
+          <option value="score">苦手度が高い順</option>
+          <option value="recent">直近でミスした順</option>
+          <option value="wrong">×回数が多い順</option>
+          <option value="number">単語番号順</option>
+        </select>
+      </label>
+      <label>表示
+        <select id="weakFilter">
+          <option value="all">すべて</option>
+          <option value="severe">苦手度70以上</option>
+          <option value="manual">固定登録のみ</option>
+        </select>
+      </label>
+    </div>
+    <div class="actions">
+      <button id="testWeakListBtn">表示中の単語をテスト</button>
+      <button class="secondary" id="refreshWeakBtn">再計算</button>
+    </div>
+  </div>
+  <div id="weakListBody"></div>
+</section>
+
 </main>
+
+
+<nav class="bottom-tabs">
+  <button id="tabHome" class="active">ホーム</button>
+  <button id="tabWeak">苦手リスト</button>
+  <button id="tabStats">学習状況</button>
+</nav>
 
 <script>
 const DEFAULT_WORDS = [{"number": 301, "word": "predict", "answers": ["予測する", "予言する", "予想する"]}, {"number": 302, "word": "examine", "answers": ["調べる", "検査する", "診察する", "考察する"]}, {"number": 303, "word": "trust", "answers": ["信頼する", "信用する", "信頼", "信用"]}, {"number": 304, "word": "stick", "answers": ["くっつく", "貼り付ける", "突き刺す", "棒", "固執する"]}, {"number": 305, "word": "emerge", "answers": ["現れる", "出現する", "明らかになる", "浮かび上がる"]}, {"number": 306, "word": "vary", "answers": ["異なる", "変わる", "変化する"]}, {"number": 307, "word": "release", "answers": ["解放する", "放出する", "発売する", "発表する", "解放"]}, {"number": 308, "word": "divide", "answers": ["分ける", "分割する", "割る", "隔てる"]}, {"number": 309, "word": "enable", "answers": ["可能にする", "できるようにする"]}, {"number": 310, "word": "judge", "answers": ["判断する", "裁く", "裁判官", "判定する"]}, {"number": 311, "word": "rely", "answers": ["頼る", "依存する", "信頼する"]}, {"number": 312, "word": "engage", "answers": ["従事する", "参加する", "引き込む", "雇う"]}, {"number": 313, "word": "shift", "answers": ["移す", "移動する", "変える", "変化", "交代"]}, {"number": 314, "word": "adopt", "answers": ["採用する", "採択する", "養子にする"]}, {"number": 315, "word": "acquire", "answers": ["獲得する", "得る", "習得する", "身につける"]}, {"number": 316, "word": "expand", "answers": ["拡大する", "広げる", "膨張する"]}, {"number": 317, "word": "refuse", "answers": ["拒む", "拒否する", "断る"]}, {"number": 318, "word": "strike", "answers": ["打つ", "襲う", "ぶつかる", "ストライキ", "印象を与える"]}, {"number": 319, "word": "repeat", "answers": ["繰り返す", "反復する"]}, {"number": 320, "word": "consume", "answers": ["消費する", "食べる", "使い果たす"]}, {"number": 321, "word": "confuse", "answers": ["混乱させる", "困惑させる", "取り違える"]}, {"number": 322, "word": "select", "answers": ["選ぶ", "選択する", "選び出す"]}, {"number": 323, "word": "evolve", "answers": ["進化する", "発展する", "徐々に発達する"]}, {"number": 324, "word": "convince", "answers": ["納得させる", "確信させる", "説得する"]}, {"number": 325, "word": "recall", "answers": ["思い出す", "呼び戻す", "回収する", "記憶"]}, {"number": 326, "word": "destroy", "answers": ["破壊する", "滅ぼす"]}, {"number": 327, "word": "preserve", "answers": ["保存する", "保護する", "維持する"]}, {"number": 328, "word": "organize", "answers": ["組織する", "整理する", "計画する"]}, {"number": 329, "word": "warn", "answers": ["警告する", "注意する"]}, {"number": 330, "word": "address", "answers": ["対処する", "取り組む", "演説する", "住所", "宛てる"]}, {"number": 331, "word": "extend", "answers": ["延長する", "伸ばす", "広げる", "及ぶ"]}, {"number": 332, "word": "appreciate", "answers": ["感謝する", "正しく理解する", "高く評価する", "鑑賞する"]}, {"number": 333, "word": "target", "answers": ["目標", "標的", "対象", "狙う"]}, {"number": 334, "word": "element", "answers": ["要素", "成分", "元素"]}, {"number": 335, "word": "principle", "answers": ["原理", "原則", "主義"]}, {"number": 336, "word": "phenomenon", "answers": ["現象"]}, {"number": 337, "word": "atmosphere", "answers": ["雰囲気", "大気", "空気"]}, {"number": 338, "word": "origin", "answers": ["起源", "由来", "出身"]}, {"number": 339, "word": "personality", "answers": ["性格", "個性", "人格"]}, {"number": 340, "word": "capacity", "answers": ["能力", "容量", "収容力"]}, {"number": 341, "word": "profit", "answers": ["利益", "収益", "得をする"]}, {"number": 342, "word": "circumstance", "answers": ["状況", "事情", "境遇"]}, {"number": 343, "word": "manner", "answers": ["方法", "やり方", "態度", "作法"]}, {"number": 344, "word": "threat", "answers": ["脅威", "脅迫", "兆し"]}, {"number": 345, "word": "resident", "answers": ["住民", "居住者"]}, {"number": 346, "word": "wealth", "answers": ["富", "財産", "豊富"]}, {"number": 347, "word": "institution", "answers": ["機関", "制度", "施設"]}, {"number": 348, "word": "authority", "answers": ["権威", "権限", "当局"]}, {"number": 349, "word": "vote", "answers": ["投票", "投票する", "票"]}, {"number": 350, "word": "sight", "answers": ["光景", "視力", "見ること", "名所"]}, {"number": 351, "word": "campaign", "answers": ["運動", "キャンペーン", "選挙運動"]}, {"number": 352, "word": "fund", "answers": ["資金", "基金", "資金を提供する"]}, {"number": 353, "word": "web", "answers": ["網", "ウェブ", "クモの巣"]}, {"number": 354, "word": "symbol", "answers": ["象徴", "記号", "シンボル"]}, {"number": 355, "word": "analysis", "answers": ["分析", "解析"]}, {"number": 356, "word": "version", "answers": ["版", "型", "バージョン"]}, {"number": 357, "word": "perspective", "answers": ["観点", "視点", "見方", "遠近法"]}, {"number": 358, "word": "crisis", "answers": ["危機"]}, {"number": 359, "word": "disaster", "answers": ["災害", "惨事"]}, {"number": 360, "word": "lecture", "answers": ["講義", "講演", "説教"]}, {"number": 361, "word": "psychology", "answers": ["心理学", "心理"]}, {"number": 362, "word": "gender", "answers": ["性別", "ジェンダー"]}, {"number": 363, "word": "custom", "answers": ["習慣", "慣習", "税関", "特注の"]}, {"number": 364, "word": "court", "answers": ["裁判所", "法廷", "中庭", "コート"]}, {"number": 365, "word": "desert", "answers": ["砂漠", "見捨てる"]}, {"number": 366, "word": "soil", "answers": ["土", "土壌", "汚す"]}, {"number": 367, "word": "agriculture", "answers": ["農業"]}, {"number": 368, "word": "fossil", "answers": ["化石"]}, {"number": 369, "word": "document", "answers": ["文書", "書類", "記録する"]}, {"number": 370, "word": "vocabulary", "answers": ["語彙", "単語"]}, {"number": 371, "word": "intelligent", "answers": ["知能の高い", "賢い", "知的な"]}, {"number": 372, "word": "conscious", "answers": ["意識している", "意識のある", "気づいている"]}, {"number": 373, "word": "capable", "answers": ["能力がある", "可能な", "有能な"]}, {"number": 374, "word": "accurate", "answers": ["正確な", "的確な"]}, {"number": 375, "word": "fundamental", "answers": ["基本的な", "根本的な", "基礎"]}, {"number": 376, "word": "artificial", "answers": ["人工の", "人造の", "不自然な"]}, {"number": 377, "word": "firm", "answers": ["しっかりした", "堅い", "断固とした", "会社"]}, {"number": 378, "word": "overall", "answers": ["全体的な", "総合的な", "全体として"]}, {"number": 379, "word": "rural", "answers": ["田舎の", "農村の"]}, {"number": 380, "word": "military", "answers": ["軍事の", "軍隊の", "軍"]}, {"number": 381, "word": "nuclear", "answers": ["核の", "原子力の"]}, {"number": 382, "word": "biological", "answers": ["生物学的な", "生物の"]}, {"number": 383, "word": "constant", "answers": ["絶え間ない", "一定の", "不変の", "定数"]}, {"number": 384, "word": "severe", "answers": ["厳しい", "深刻な", "激しい"]}, {"number": 385, "word": "visual", "answers": ["視覚の", "目に見える"]}, {"number": 386, "word": "enormous", "answers": ["莫大な", "巨大な"]}, {"number": 387, "word": "convenient", "answers": ["便利な", "都合のよい"]}, {"number": 388, "word": "domestic", "answers": ["国内の", "家庭の", "飼いならされた"]}, {"number": 389, "word": "mass", "answers": ["大量の", "大衆", "塊", "質量"]}, {"number": 390, "word": "typical", "answers": ["典型的な", "代表的な"]}, {"number": 391, "word": "overseas", "answers": ["海外へ", "海外の"]}, {"number": 392, "word": "nevertheless", "answers": ["それにもかかわらず", "それでも"]}, {"number": 393, "word": "moreover", "answers": ["そのうえ", "さらに"]}, {"number": 394, "word": "otherwise", "answers": ["さもなければ", "その他の点では", "別の方法で"]}, {"number": 395, "word": "throughout", "answers": ["至る所に", "ずっと", "全体を通して"]}, {"number": 396, "word": "within", "answers": ["以内に", "内側に", "の中で"]}, {"number": 397, "word": "despite", "answers": ["にもかかわらず"]}, {"number": 398, "word": "unlike", "answers": ["と違って", "似ていない"]}, {"number": 399, "word": "per", "answers": ["につき", "ごとに"]}, {"number": 400, "word": "via", "answers": ["経由で", "によって"]}];
@@ -231,13 +293,17 @@ const STORAGE = {
   stats:"target_stats_v2",
   qmark:"target_qmark_v2",
   draft:"target_draft_v2",
-  sessions:"target_sessions_v2"
+  sessions:"target_sessions_v2",
+  manualWeak:"target_manual_weak_v3",
+  removedWeak:"target_removed_weak_v3"
 };
 
 let words = loadJSON(STORAGE.words, DEFAULT_WORDS);
 let stats = loadJSON(STORAGE.stats, {});
 let qhistory = new Set(loadJSON(STORAGE.qmark, []));
 let sessions = loadJSON(STORAGE.sessions, []);
+let manualWeak = new Set(loadJSON(STORAGE.manualWeak, []));
+let removedWeak = new Set(loadJSON(STORAGE.removedWeak, []));
 let current = [];
 let currentRows = [];
 let timerId = null;
@@ -259,6 +325,8 @@ function saveCore(){
   localStorage.setItem(STORAGE.stats, JSON.stringify(stats));
   localStorage.setItem(STORAGE.qmark, JSON.stringify([...qhistory]));
   localStorage.setItem(STORAGE.sessions, JSON.stringify(sessions.slice(-200)));
+  localStorage.setItem(STORAGE.manualWeak, JSON.stringify([...manualWeak]));
+  localStorage.setItem(STORAGE.removedWeak, JSON.stringify([...removedWeak]));
 }
 function normalize(s){
   return (s||"")
@@ -290,15 +358,42 @@ function shuffle(a){
   return a;
 }
 function statFor(n){
-  if(!stats[n]) stats[n]={attempts:0,correct:0,partial:0,wrong:0,lastGrade:"",lastAnswer:"",lastTested:""};
+  if(!stats[n]) stats[n]={attempts:0,correct:0,partial:0,wrong:0,lastGrade:"",lastAnswer:"",lastTested:"",lastMistakeAt:"",correctStreak:0};
+  if(stats[n].correctStreak==null)stats[n].correctStreak=0;
+  if(stats[n].lastMistakeAt==null)stats[n].lastMistakeAt="";
   return stats[n];
 }
-function isWeak(n){
+function daysSince(iso){
+  if(!iso)return 999;
+  return Math.max(0,(Date.now()-new Date(iso).getTime())/86400000);
+}
+function weaknessScore(n){
   const s=statFor(n);
-  return s.partial>0 || s.wrong>0 || s.lastGrade==="△" || s.lastGrade==="×";
+  const total=Math.max(1,s.attempts);
+  const errorRate=(s.wrong+s.partial*0.55)/total;
+  const recency=s.lastMistakeAt ? Math.max(0,1-daysSince(s.lastMistakeAt)/30) : 0;
+  const volume=Math.min(1,(s.wrong+s.partial*0.6)/5);
+  const streakRelief=Math.min(18,(s.correctStreak||0)*6);
+  let score=Math.round(errorRate*50+recency*30+volume*20-streakRelief);
+  if(manualWeak.has(n))score=Math.max(score,70);
+  if(removedWeak.has(n) && !manualWeak.has(n))score=0;
+  return Math.max(0,Math.min(100,score));
+}
+function weakLabel(score){
+  if(score>=85)return "かなり苦手";
+  if(score>=70)return "苦手";
+  if(score>=50)return "やや苦手";
+  if(score>=30)return "注意";
+  return "軽度";
+}
+function isWeak(n){
+  return manualWeak.has(n) || weaknessScore(n)>=30;
 }
 function switchView(id){
-  ["setup","test","results","history"].forEach(x=>$(x).classList.toggle("hidden",x!==id));
+  ["setup","test","results","history","weaklist"].forEach(x=>$(x).classList.toggle("hidden",x!==id));
+  $("tabHome").classList.toggle("active",["setup","test","results"].includes(id));
+  $("tabWeak").classList.toggle("active",id==="weaklist");
+  $("tabStats").classList.toggle("active",id==="history");
   window.scrollTo({top:0,behavior:"smooth"});
 }
 function buildPool(){
@@ -433,6 +528,14 @@ function submitTest(auto=false){
     s.lastGrade=r.grade;
     s.lastAnswer=r.raw;
     s.lastTested=new Date().toISOString();
+    if(r.grade==="○"){
+      s.correctStreak=(s.correctStreak||0)+1;
+      if((s.correctStreak||0)>=3 && !manualWeak.has(r.number)) removedWeak.add(r.number);
+    }else{
+      s.correctStreak=0;
+      s.lastMistakeAt=s.lastTested;
+      removedWeak.delete(r.number);
+    }
     if(r.hasQ)qhistory.add(r.number); else qhistory.delete(r.number);
   }
 
@@ -487,6 +590,13 @@ function overrideGrade(n,newGrade){
   if(newGrade==="△")s.partial++;
   if(newGrade==="×")s.wrong++;
   row.grade=newGrade;s.lastGrade=newGrade;
+  if(newGrade==="○"){
+    s.correctStreak=(s.correctStreak||0)+1;
+  }else{
+    s.correctStreak=0;
+    s.lastMistakeAt=new Date().toISOString();
+    removedWeak.delete(n);
+  }
   lastBad=currentRows.filter(r=>r.grade!=="○");
   saveCore();
   renderBadResults();
@@ -496,6 +606,69 @@ function setActiveTab(){
   $("tabMid").classList.toggle("active",activeFilter==="△");
   $("tabBad").classList.toggle("active",activeFilter==="×");
 }
+
+function formatDate(iso){
+  if(!iso)return "記録なし";
+  const d=new Date(iso);
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+}
+function getWeakRows(){
+  let rows=words.map(w=>({w,s:statFor(w.number),score:weaknessScore(w.number)}))
+    .filter(x=>isWeak(x.w.number));
+  const filter=$("weakFilter")?.value||"all";
+  if(filter==="severe")rows=rows.filter(x=>x.score>=70);
+  if(filter==="manual")rows=rows.filter(x=>manualWeak.has(x.w.number));
+  const sort=$("weakSort")?.value||"score";
+  rows.sort((a,b)=>{
+    if(sort==="recent")return new Date(b.s.lastMistakeAt||0)-new Date(a.s.lastMistakeAt||0);
+    if(sort==="wrong")return b.s.wrong-a.s.wrong || b.score-a.score;
+    if(sort==="number")return a.w.number-b.w.number;
+    return b.score-a.score || b.s.wrong-a.s.wrong;
+  });
+  return rows;
+}
+function renderWeakList(){
+  const rows=getWeakRows();
+  $("weakSummary").textContent=`${rows.length}語を表示`;
+  $("weakListBody").innerHTML=rows.length?rows.map(({w,s,score})=>`
+    <div class="weak-card">
+      <div class="weak-head">
+        <div>
+          <div class="weak-title">${w.number} ${escapeHtml(w.word)}</div>
+          <div class="small">${w.answers.map(escapeHtml).join("／")}</div>
+        </div>
+        <div class="weak-score">${weakLabel(score)} ${score}</div>
+      </div>
+      <div class="weak-bar"><div style="width:${score}%"></div></div>
+      <div class="weak-meta">
+        × ${s.wrong}回　△ ${s.partial}回　○ ${s.correct}回<br>
+        直近のミス：${formatDate(s.lastMistakeAt)}　連続正解：${s.correctStreak||0}回
+        ${manualWeak.has(w.number)?"　固定登録中":""}
+      </div>
+      <div class="weak-controls">
+        <button class="secondary" onclick="testOneWeak(${w.number})">1問テスト</button>
+        <button class="secondary" onclick="toggleManualWeak(${w.number})">${manualWeak.has(w.number)?"固定解除":"苦手に固定"}</button>
+        <button class="danger" onclick="removeWeak(${w.number})">消去</button>
+      </div>
+    </div>`).join(""):`<div class="card empty-state">条件に合う苦手単語はありません。</div>`;
+}
+function showWeakList(){
+  renderWeakList();
+  switchView("weaklist");
+}
+function toggleManualWeak(n){
+  if(manualWeak.has(n))manualWeak.delete(n);else{manualWeak.add(n);removedWeak.delete(n)}
+  saveCore();renderWeakList();
+}
+function removeWeak(n){
+  if(!confirm("この単語を苦手リストから消去しますか？\\n履歴自体は残ります。"))return;
+  manualWeak.delete(n);removedWeak.add(n);saveCore();renderWeakList();
+}
+function testOneWeak(n){
+  const w=words.find(x=>x.number===n);
+  if(w)startTest([w]);
+}
+
 function showHistory(){
   const all=words.map(w=>({w,s:statFor(w.number)})).filter(x=>x.s.attempts>0);
   const attempts=all.reduce((a,x)=>a+x.s.attempts,0);
@@ -506,6 +679,7 @@ function showHistory(){
     .sort((a,b)=>(b.s.wrong+b.s.partial)-(a.s.wrong+a.s.partial)||a.w.number-b.w.number)
     .map(({w,s})=>`<tr>
       <td><b>${w.number} ${escapeHtml(w.word)}</b></td>
+      <td>${weaknessScore(w.number)}</td>
       <td>${s.attempts}</td><td>${s.correct}</td><td>${s.partial}</td><td>${s.wrong}</td>
       <td>${escapeHtml(s.lastGrade||"-")}</td>
     </tr>`).join("");
@@ -544,7 +718,7 @@ $("tabMid").onclick=()=>{activeFilter="△";setActiveTab();renderBadResults()};
 $("tabBad").onclick=()=>{activeFilter="×";setActiveTab();renderBadResults()};
 
 $("exportAllBtn").onclick=()=>downloadJSON("target_batch_test_backup.json",{
-  version:2,exportedAt:new Date().toISOString(),words,stats,qmark:[...qhistory],sessions
+  version:3,exportedAt:new Date().toISOString(),words,stats,qmark:[...qhistory],sessions,manualWeak:[...manualWeak],removedWeak:[...removedWeak]
 });
 $("exportWordsBtn").onclick=()=>downloadJSON("target_words.json",words);
 $("importAllBtn").onclick=()=>$("fileInputAll").click();
@@ -555,7 +729,7 @@ $("fileInputAll").onchange=async e=>{
   try{
     const d=JSON.parse(await f.text());
     if(!Array.isArray(d.words)||typeof d.stats!=="object")throw 0;
-    words=d.words;stats=d.stats||{};qhistory=new Set(d.qmark||[]);sessions=d.sessions||[];
+    words=d.words;stats=d.stats||{};qhistory=new Set(d.qmark||[]);sessions=d.sessions||[];manualWeak=new Set(d.manualWeak||[]);removedWeak=new Set(d.removedWeak||[]);
     saveCore();alert("全データを復元しました。");
   }catch{alert("バックアップ形式が正しくありません。")}
   e.target.value="";
@@ -571,8 +745,21 @@ $("fileInputWords").onchange=async e=>{
 };
 $("clearHistory").onclick=()=>{
   if(confirm("学習履歴・苦手履歴・？履歴をすべて消しますか？")){
-    stats={};qhistory.clear();sessions=[];saveCore();clearDraft();alert("消去しました。");
+    stats={};qhistory.clear();sessions=[];manualWeak.clear();removedWeak.clear();saveCore();clearDraft();alert("消去しました。");
   }
+};
+
+
+$("tabHome").onclick=()=>switchView("setup");
+$("tabWeak").onclick=showWeakList;
+$("tabStats").onclick=showHistory;
+$("weakSort").onchange=renderWeakList;
+$("weakFilter").onchange=renderWeakList;
+$("refreshWeakBtn").onclick=renderWeakList;
+$("testWeakListBtn").onclick=()=>{
+  const pool=getWeakRows().map(x=>x.w);
+  if(!pool.length){alert("表示中の苦手単語がありません。");return}
+  startTest(pool.slice(0,Math.max(1,+$("count").value||100)));
 };
 
 window.addEventListener("beforeunload",()=>{if(!$("test").classList.contains("hidden"))saveDraft()});
