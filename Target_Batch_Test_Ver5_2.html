@@ -1,0 +1,1400 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f5f5f7">
+<title>Target Batch Test Ver.5.2</title>
+<style>
+:root{
+  font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+  color:#111;background:#f5f5f7
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{touch-action:manipulation}
+header{
+  position:sticky;top:0;z-index:20;
+  background:rgba(255,255,255,.94);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid #ddd;
+  padding:10px 14px
+}
+.header-inner{max-width:980px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
+h1{font-size:19px;margin:0}
+.wrap{max-width:980px;margin:auto;padding:14px}
+.card{background:#fff;border:1px solid #ddd;border-radius:15px;padding:16px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+label{font-size:13px;color:#555;display:block}
+input,select,textarea{
+  width:100%;border:1px solid #bbb;border-radius:10px;padding:11px;background:#fff;
+  font-size:16px
+}
+button{
+  border:0;border-radius:10px;padding:11px 14px;background:#111;color:#fff;
+  font-weight:750;cursor:pointer
+}
+button.secondary{background:#e9e9ec;color:#111}
+button.warning{background:#9a6200}
+button.danger{background:#a30000}
+button:disabled{opacity:.45;cursor:not-allowed}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.small{font-size:12px;color:#666;line-height:1.55}
+.notice{padding:10px 12px;border-radius:10px;background:#f0f4ff;font-size:13px}
+.hidden{display:none!important}
+.top-status{display:flex;gap:12px;align-items:center;font-size:13px;white-space:nowrap}
+.timer{font-variant-numeric:tabular-nums;font-weight:850;font-size:18px}
+.progressbar{height:8px;background:#e8e8eb;border-radius:999px;overflow:hidden;margin:8px 0 4px}
+.progressbar>div{height:100%;background:#111;width:0%}
+.test-tools{
+  position:sticky;top:52px;z-index:10;background:#fff;
+  border:1px solid #ddd;border-radius:14px;padding:10px 12px;margin-bottom:10px
+}
+.test-tools-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.qrow{
+  display:grid;grid-template-columns:54px 155px minmax(0,1fr);
+  gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eee
+}
+.qrow:last-child{border-bottom:0}
+.qnum{color:#666;text-align:right;font-variant-numeric:tabular-nums}
+.word{font-weight:750;font-size:18px}
+.qrow input{padding:10px}
+.qrow.unanswered input{border-color:#b66500;background:#fffaf0}
+.qrow.answered input{border-color:#8ca58d}
+.sticky-submit{
+  position:sticky;bottom:10px;display:flex;justify-content:flex-end;
+  pointer-events:none;z-index:15
+}
+.sticky-submit button{pointer-events:auto;box-shadow:0 5px 22px rgba(0,0,0,.22)}
+.stats{font-size:20px;font-weight:850;line-height:1.6}
+.result{
+  border-left:5px solid #999;padding:11px 12px;margin:9px 0;background:#fafafa;border-radius:9px
+}
+.result.bad{border-left-color:#b00020}
+.result.mid{border-left-color:#c77c00}
+.result.qmark{border-left-color:#0057b8}
+.badge{
+  display:inline-block;border-radius:999px;padding:3px 8px;font-size:12px;
+  font-weight:850;background:#eee;margin-right:6px
+}
+.result-meta{font-size:13px;color:#666;margin-top:5px}
+.tabbar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.tabbar button{padding:8px 11px}
+.tabbar button.active{background:#111;color:#fff}
+.tabbar button:not(.active){background:#eee;color:#111}
+.history-table{width:100%;border-collapse:collapse;font-size:13px}
+.history-table th,.history-table td{padding:8px;border-bottom:1px solid #eee;text-align:left}
+.mono{font-variant-numeric:tabular-nums}
+@media(max-width:650px){
+  .grid{grid-template-columns:1fr 1fr}
+  .qrow{grid-template-columns:42px 102px minmax(0,1fr);gap:7px}
+  .word{font-size:16px}
+  .wrap{padding:9px}
+  .card{padding:12px}
+  .top-status{gap:7px;font-size:12px}
+}
+
+.bottom-tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;
+  display:grid;grid-template-columns:repeat(3,1fr);
+  background:rgba(255,255,255,.96);backdrop-filter:blur(14px);
+  border-top:1px solid #d8d8dc;padding:7px max(8px,env(safe-area-inset-right)) calc(7px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+}
+.bottom-tabs button{
+  background:transparent;color:#666;padding:8px 4px;border-radius:9px;font-size:13px
+}
+.bottom-tabs button.active{background:#111;color:#fff}
+body{padding-bottom:76px}
+.weak-card{
+  border:1px solid #ddd;border-radius:13px;padding:12px;margin:9px 0;background:#fff
+}
+.weak-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.weak-title{font-size:18px;font-weight:850}
+.weak-score{font-weight:900;font-size:15px}
+.weak-bar{height:8px;background:#e7e7ea;border-radius:999px;overflow:hidden;margin:8px 0}
+.weak-bar>div{height:100%;background:#111}
+.weak-meta{font-size:13px;color:#555;line-height:1.6}
+.weak-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.weak-controls button{padding:8px 10px}
+.empty-state{padding:28px 12px;text-align:center;color:#666}
+
+
+.backup-list{display:grid;gap:9px;margin-top:10px}
+.backup-item{
+  border:1px solid #ddd;border-radius:12px;padding:11px;background:#fafafa
+}
+.backup-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.backup-name{font-weight:850}
+.backup-meta{font-size:12px;color:#666;margin-top:4px;line-height:1.5}
+.metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:12px}
+.metric{border:1px solid #ddd;border-radius:12px;padding:12px;background:#fafafa}
+.metric b{display:block;font-size:22px}
+.metric span{font-size:12px;color:#666}
+@media(max-width:650px){.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+:root{--accent:#111;--accentText:#fff;--page:#f5f5f7;--card:#fff;--text:#111;--muted:#666;--line:#ddd}
+body{background:var(--page);color:var(--text)}
+.card,.weak-card,.backup-item,.metric{background:var(--card);border-color:var(--line)}
+button{background:var(--accent);color:var(--accentText)}
+body.dark{--page:#111214;--card:#1c1d20;--text:#f4f4f5;--muted:#aaa;--line:#34363a}
+body.dark input,body.dark select,body.dark textarea{background:#111214;color:#f4f4f5;border-color:#45474d}
+body.dark .notice,body.dark .metric,body.dark .backup-item{background:#24262a}
+body.dark .history-table th,body.dark .history-table td{border-color:#34363a}
+.dashboard-grid{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:14px}
+.goal-ring{display:flex;align-items:center;gap:14px}
+.ring{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent) var(--pct),#ddd 0);position:relative;flex:none}
+.ring:after{content:"";position:absolute;width:62px;height:62px;border-radius:50%;background:var(--card)}
+.ring b{z-index:1;font-size:18px}
+.quick-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal-day{aspect-ratio:1;border-radius:7px;background:#ececef;display:grid;place-items:center;font-size:11px}
+.cal-day.l1{background:color-mix(in srgb,var(--accent) 25%,#fff)}
+.cal-day.l2{background:color-mix(in srgb,var(--accent) 48%,#fff)}
+.cal-day.l3{background:color-mix(in srgb,var(--accent) 72%,#fff);color:#fff}
+.cal-day.l4{background:var(--accent);color:var(--accentText)}
+.word-grid{display:grid;gap:9px}
+.word-card{border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--card)}
+.word-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.icon-btn{background:transparent;color:var(--text);border:1px solid var(--line);padding:7px 9px}
+.icon-btn.on{background:var(--accent);color:var(--accentText)}
+.tag{display:inline-block;font-size:11px;padding:3px 7px;border-radius:999px;background:#ececef;margin:3px 3px 0 0}
+body.dark .tag{background:#34363a}
+.searchbar{display:grid;grid-template-columns:1fr auto;gap:8px}
+.chart{width:100%;height:180px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.analysis-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.analysis-box{border:1px solid var(--line);border-radius:12px;padding:12px}
+.analysis-list{margin:8px 0 0;padding-left:20px;line-height:1.7}
+.settings-row{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+@media(max-width:760px){.dashboard-grid{grid-template-columns:1fr}.analysis-grid{grid-template-columns:1fr}}
+
+
+.quick-range-wrap{margin-top:12px}.quick-range{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}.quick-range button{padding:8px 11px}.preset-row{display:grid;grid-template-columns:minmax(180px,1fr) auto auto;gap:8px;margin-top:10px}.version-card{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:13px;line-height:1.7}.result-actions button{min-width:170px}.quick-count,.quick-time{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}.quick-count button,.quick-time button{padding:8px 11px}.limit-note{margin-top:6px;font-size:12px;color:var(--muted)}.result-actions{align-items:stretch}@media(max-width:700px){.preset-row{grid-template-columns:1fr}.result-actions button{width:100%}}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div style="display:flex;align-items:center;gap:8px"><h1>Target Batch Test</h1><span style="font-size:12px;font-weight:800;background:#111;color:#fff;padding:3px 8px;border-radius:999px">Ver.5.2</span></div>
+    <div class="top-status">
+      <span id="unansweredTop"></span>
+      <span id="timerTop" class="timer"></span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+<section id="setup">
+
+  <div class="dashboard-grid">
+    <div class="card" style="margin:0">
+      <div class="goal-ring">
+        <div id="goalRing" class="ring" style="--pct:0%"><b id="goalPct">0%</b></div>
+        <div>
+          <h2 style="margin:0 0 5px">今日の進捗</h2>
+          <div><b id="todayDone">0</b> / <span id="todayGoalText">100</span>問</div>
+          <div class="small" id="goalRemain">あと100問</div>
+        </div>
+      </div>
+      <div class="settings-row" style="margin-top:12px">
+        <label style="flex:1">今日の目標<input id="dailyGoal" type="number" min="1" value="100"></label>
+        <button class="secondary" id="saveGoalBtn">目標保存</button>
+      </div>
+    </div>
+    <div class="card" style="margin:0">
+      <h3 style="margin-top:0">おすすめ</h3>
+      <div id="recommendText" class="small"></div>
+      <div class="quick-actions" style="margin-top:10px">
+        <button id="recommendTestBtn">おすすめ復習</button>
+        <button class="secondary" id="repeatLastBtn">前回条件</button>
+      </div>
+    </div>
+  </div>
+
+<div class="card"><h2 style="margin-top:0">テスト設定</h2>
+  <div id="resumeBox" class="notice hidden">
+    途中保存されたテストがあります。
+    <div class="actions">
+      <button id="resumeBtn">続きから再開</button>
+      <button class="secondary" id="discardDraftBtn">途中データを破棄</button>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:12px">
+    <label>開始番号<input id="startNo" type="number" value="1" min="1" max="1900"></label>
+    <label>終了番号<input id="endNo" type="number" value="400" min="1" max="1900"></label>
+    <label>出題数<input id="count" type="number" value="100" min="1"></label>
+    <label>制限時間（分・0で無制限）<input id="minutes" type="number" value="5" min="0" step="0.1"><span id="timeLimitNote" class="limit-note"></span></label>
+    <label>出題順
+      <select id="order">
+        <option value="normal">番号順</option>
+        <option value="random">ランダム</option>
+      </select>
+    </label>
+    <label>出題対象
+      <select id="mode">
+        <option value="range">指定範囲</option>
+        <option value="weak">苦手単語のみ</option>
+        <option value="qmark">「？」履歴のみ</option>
+        <option value="never">未出題のみ</option>
+        <option value="wrong2">×が2回以上</option>
+        <option value="recent">直近7日でミス</option>
+        <option value="fading">忘れかけ</option>
+        <option value="favorite">お気に入り</option>
+        <option value="reading">長文で見た</option>
+        <option value="recommended">おすすめ復習</option>
+      </select>
+    </label>
+  </div>
+  <div class="quick-range-wrap">
+    <div class="small"><b>クイック範囲</b></div>
+    <div class="quick-range">
+      <button class="secondary" data-range="1-100">1〜100</button>
+      <button class="secondary" data-range="101-200">101〜200</button>
+      <button class="secondary" data-range="201-300">201〜300</button>
+      <button class="secondary" data-range="301-400">301〜400</button>
+      <button class="secondary" data-range="all">全範囲</button>
+    </div>
+  </div>
+  <div class="quick-range-wrap">
+    <div class="small"><b>問題数</b></div>
+    <div class="quick-count">
+      <button class="secondary" data-count="10">10問</button>
+      <button class="secondary" data-count="20">20問</button>
+      <button class="secondary" data-count="50">50問</button>
+      <button class="secondary" data-count="100">100問</button>
+      <button class="secondary" data-count="all">範囲内すべて</button>
+    </div>
+  </div>
+  <div class="quick-range-wrap">
+    <div class="small"><b>制限時間</b>（最長＝出題数×10秒）</div>
+    <div class="quick-time">
+      <button class="secondary" data-time-ratio="0.5">最長の50%</button>
+      <button class="secondary" data-time-ratio="0.75">最長の75%</button>
+      <button class="secondary" data-time-ratio="1">最長</button>
+      <button class="secondary" data-time-ratio="0">無制限</button>
+    </div>
+  </div>
+  <div class="preset-row">
+    <select id="presetSelect"><option value="">保存した条件を選択</option></select>
+    <button class="secondary" id="savePresetBtn">現在の条件を保存</button>
+    <button class="secondary" id="deletePresetBtn">選択中を削除</button>
+  </div>
+
+  <div class="actions">
+    <button id="startBtn">テスト開始</button>
+    <button class="secondary" id="showHistoryBtn">学習状況</button>
+  </div>
+
+  
+<details style="margin-top:14px" open>
+  <summary><b>データ管理</b></summary>
+  <div class="notice" style="margin-top:10px">
+    学習データはこの端末のブラウザ内に保存されています。ファイル操作なしで、アプリ内に復元ポイントを作れます。
+  </div>
+  <div class="actions">
+    <button id="createSnapshotBtn">現在の状態を保存</button>
+    <button class="secondary" id="autoBackupNowBtn">自動バックアップを更新</button>
+    <button class="danger" id="clearHistory">学習履歴を消去</button>
+  </div>
+  <div id="backupList" class="backup-list"></div>
+  <details style="margin-top:10px">
+    <summary class="small"><b>非常用の外部バックアップ</b></summary>
+    <div class="actions">
+      <button class="secondary" id="exportAllBtn">ファイルへ書き出す</button>
+      <button class="secondary" id="importAllBtn">ファイルから復元</button>
+      <button class="secondary" id="exportWordsBtn">単語データだけ書き出す</button>
+      <button class="secondary" id="importWordsBtn">単語データだけ読み込む</button>
+      <input id="fileInputAll" type="file" accept=".json" class="hidden">
+      <input id="fileInputWords" type="file" accept=".json" class="hidden">
+    </div>
+  </details>
+</details>
+
+  <p class="small">
+    回答末尾に「？」を付けると、○でも確認対象として別表示します。Enterで次の欄へ移動します。
+    入力内容は端末内に自動保存されます。
+  </p>
+</div>
+</section>
+
+<section id="test" class="hidden">
+  <div class="test-tools">
+    <div class="test-tools-row">
+      <div><b id="progressText"></b><div class="small" id="saveState">自動保存中</div></div>
+      <div class="actions" style="margin-top:0">
+        <button class="secondary" id="jumpFirstBlank">最初の未回答へ</button>
+        <button class="secondary" id="saveExitBtn">保存して戻る</button>
+      </div>
+    </div>
+    <div class="progressbar"><div id="progressFill"></div></div>
+  </div>
+  <div class="card"><div id="questions"></div></div>
+  <div class="sticky-submit"><button id="submitBtn">採点する</button></div>
+</section>
+
+<section id="results" class="hidden">
+  <div class="card">
+    <div id="stats" class="stats"></div>
+    <div class="actions result-actions">
+      <button id="retrySame">同じ条件でもう一度</button>
+      <button class="secondary" id="changeAndRetry">条件を変えてもう一度</button>
+      <button class="secondary" id="retryWrong">今回の×だけ再テスト</button>
+      <button class="secondary" id="retryPartial">今回の△だけ再テスト</button>
+      <button class="secondary" id="retryWeak">今回の△・×を再テスト</button>
+    </div>
+  </div>
+
+  <div id="reviewQ" class="card hidden">
+    <h2>○だが「？」付き</h2>
+    <div id="qmarkResults"></div>
+  </div>
+
+  <div id="reviewBad" class="card">
+    <h2>△・×</h2>
+    <div class="tabbar">
+      <button id="tabAll" class="active">すべて</button>
+      <button id="tabMid">△のみ</button>
+      <button id="tabBad">×のみ</button>
+    </div>
+    <div id="badResults"></div>
+  </div>
+</section>
+
+<section id="history" class="hidden">
+  <div class="card">
+    <h2 style="margin-top:0">学習状況</h2>
+    <div id="historySummary" class="stats"></div>
+    <div class="metric-grid">
+      <div class="metric"><b id="metricWords">0</b><span>学習済み単語</span></div>
+      <div class="metric"><b id="metricAttempts">0</b><span>総回答数</span></div>
+      <div class="metric"><b id="metricAccuracy">0%</b><span>○率</span></div>
+      <div class="metric"><b id="metricWeak">0</b><span>苦手単語</span></div>
+      <div class="metric"><b id="metricToday">0</b><span>今日の回答</span></div>
+      <div class="metric"><b id="metricStreak">0日</b><span>学習継続</span></div>
+    </div>
+    <div class="actions">
+      <button class="secondary" id="historyBackBtn">設定へ戻る</button>
+    </div>
+    <h3>直近28日の学習</h3>
+    <div id="studyCalendar" class="calendar"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">分析</h3>
+    <div class="analysis-grid">
+      <div class="analysis-box"><b>忘れ始め</b><ol id="fadingList" class="analysis-list"></ol></div>
+      <div class="analysis-box"><b>あと1回で克服</b><ol id="almostList" class="analysis-list"></ol></div>
+      <div class="analysis-box"><b>最近ミス</b><ol id="recentMissList" class="analysis-list"></ol></div>
+      <div class="analysis-box"><b>克服済み</b><ol id="masteredList" class="analysis-list"></ol></div>
+    </div>
+    <h3>回答数推移</h3><canvas id="volumeChart" class="chart"></canvas>
+    <h3>正答率推移</h3><canvas id="accuracyChart" class="chart"></canvas>
+  </div>
+  <div class="card">
+    <table class="history-table">
+      <thead><tr><th>単語</th><th>苦手度</th><th>回数</th><th>○</th><th>△</th><th>×</th><th>最終</th></tr></thead>
+      <tbody id="historyBody"></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="weaklist" class="hidden">
+  <div class="card">
+    <h2 style="margin-top:0">苦手リスト</h2>
+    <div id="weakSummary" class="stats"></div>
+    <div class="grid" style="margin-top:12px">
+      <label>並び順
+        <select id="weakSort">
+          <option value="score">苦手度が高い順</option>
+          <option value="recent">直近でミスした順</option>
+          <option value="wrong">×回数が多い順</option>
+          <option value="number">単語番号順</option>
+        </select>
+      </label>
+      <label>表示
+        <select id="weakFilter">
+          <option value="all">すべて</option>
+          <option value="severe">苦手度70以上</option>
+          <option value="manual">固定登録のみ</option>
+        </select>
+      </label>
+    </div>
+    <div class="actions">
+      <button id="testWeakListBtn">表示中の単語をテスト</button>
+      <button class="secondary" id="refreshWeakBtn">再計算</button>
+    </div>
+  </div>
+  <div id="weakListBody"></div>
+</section>
+
+
+<section id="wordmanager" class="hidden">
+  <div class="card">
+    <h2 style="margin-top:0">単語管理</h2>
+    <div class="searchbar">
+      <input id="wordSearch" placeholder="英語・日本語・番号・メモで検索">
+      <button id="clearSearchBtn" class="secondary">消去</button>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <label>絞り込み
+        <select id="wordFilter">
+          <option value="all">すべて</option>
+          <option value="favorite">お気に入り</option>
+          <option value="reading">長文で見た</option>
+          <option value="review">要復習</option>
+          <option value="weak">苦手</option>
+        </select>
+      </label>
+      <label>並び順
+        <select id="wordSort">
+          <option value="number">番号順</option>
+          <option value="weak">苦手度順</option>
+          <option value="reading">長文遭遇回数順</option>
+          <option value="recent">最近更新順</option>
+        </select>
+      </label>
+    </div>
+    <div id="wordManagerSummary" class="small" style="margin-top:10px"></div>
+  </div>
+  <div id="wordManagerBody" class="word-grid"></div>
+</section>
+
+<section id="settings" class="hidden">
+  <div class="card">
+    <h2 style="margin-top:0">表示設定</h2>
+    <div class="grid">
+      <label>表示モード
+        <select id="appearanceSelect">
+          <option value="light">ライト</option>
+          <option value="dark">ダーク</option>
+        </select>
+      </label>
+      <label>テーマカラー
+        <select id="themeSelect">
+          <option value="#111111">ブラック</option>
+          <option value="#315efb">ブルー</option>
+          <option value="#7b4dff">パープル</option>
+          <option value="#198754">グリーン</option>
+          <option value="#c4472d">レッド</option>
+        </select>
+      </label>
+    </div>
+    <div class="notice" style="margin-top:12px">設定はこの端末に保存されます。</div>
+    <div class="version-card">
+      <b>Target Batch Test Ver.5.2</b>
+      <div>登録単語数 <strong id="registeredWordCount">400</strong> / 1900</div>
+      <div class="small">Target 1900：現在の登録範囲を自動認識。「全範囲」は語数追加後もそのまま使用できます。</div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+
+<nav class="bottom-tabs" style="grid-template-columns:repeat(5,1fr)">
+  <button id="tabHome" class="active">ホーム</button>
+  <button id="tabWeak">苦手</button>
+  <button id="tabWords">単語</button>
+  <button id="tabStats">統計</button>
+  <button id="tabSettings">設定</button>
+</nav>
+
+<script>
+const DEFAULT_WORDS = [{"number":1,"word":"create","answers":["創り出す","作り出す","創造する"]},{"number":2,"word":"increase","answers":["増加する","増やす","増加"]},{"number":3,"word":"improve","answers":["向上させる","改善する","よくなる"]},{"number":4,"word":"mean","answers":["意味する","つもりである","意味"]},{"number":5,"word":"own","answers":["所有している","自分自身の","独自の"]},{"number":6,"word":"include","answers":["含む","含める"]},{"number":7,"word":"consider","answers":["見なす","考慮する","考える"]},{"number":8,"word":"allow","answers":["許す","許可する","与える"]},{"number":9,"word":"suggest","answers":["提案する","示唆する","暗示する"]},{"number":10,"word":"produce","answers":["生産する","作り出す","産出する"]},{"number":11,"word":"decide","answers":["決める","決定する"]},{"number":12,"word":"offer","answers":["提供する","申し出る","提案"]},{"number":13,"word":"require","answers":["要求する","必要とする"]},{"number":14,"word":"share","answers":["共有する","分担する","分け前"]},{"number":15,"word":"store","answers":["保存する","蓄える","店"]},{"number":16,"word":"tend","answers":["傾向がある","世話をする"]},{"number":17,"word":"concern","answers":["心配している","関係する","心配","関心"]},{"number":18,"word":"describe","answers":["述べる","説明する","描写する"]},{"number":19,"word":"involve","answers":["関与させる","伴う","巻き込む"]},{"number":20,"word":"reduce","answers":["減らす","減少させる"]},{"number":21,"word":"design","answers":["設計する","計画する","設計"]},{"number":22,"word":"force","answers":["強いる","強要する","力"]},{"number":23,"word":"limit","answers":["制限する","限界","制限"]},{"number":24,"word":"bear","answers":["耐える","抱く","負う","クマ"]},{"number":25,"word":"affect","answers":["影響を及ぼす","影響する"]},{"number":26,"word":"deal","answers":["処理する","対処する","取引","量"]},{"number":27,"word":"avoid","answers":["避ける"]},{"number":28,"word":"relate","answers":["関連づける","関係する"]},{"number":29,"word":"realize","answers":["気づく","実現する","理解する"]},{"number":30,"word":"encourage","answers":["奨励する","励ます","促す"]},{"number":31,"word":"compare","answers":["比較する","たとえる"]},{"number":32,"word":"measure","answers":["測る","評価する","方策","程度"]},{"number":33,"word":"exist","answers":["存在する","生存する"]},{"number":34,"word":"mark","answers":["印をつける","示す","印","点数"]},{"number":35,"word":"challenge","answers":["異議を唱える","挑む","難題","挑戦"]},{"number":36,"word":"depend","answers":["頼る","次第である","依存する"]},{"number":37,"word":"object","answers":["反対する","物体","対象","目的"]},{"number":38,"word":"demand","answers":["要求する","需要","要求"]},{"number":39,"word":"found","answers":["設立する","基礎を置く"]},{"number":40,"word":"complete","answers":["完成させる","仕上げる","完全な"]},{"number":41,"word":"idea","answers":["考え","思いつき","理解","見解"]},{"number":42,"word":"accord","answers":["一致","合意","協定","一致する"]},{"number":43,"word":"company","answers":["会社","仲間","同席"]},{"number":44,"word":"interest","answers":["興味","利子","利益","関心"]},{"number":45,"word":"research","answers":["研究","調査","研究する"]},{"number":46,"word":"cause","answers":["原因","引き起こす"]},{"number":47,"word":"reason","answers":["理由","根拠","理性"]},{"number":48,"word":"effect","answers":["影響","効果","結果"]},{"number":49,"word":"influence","answers":["影響","影響力","影響を及ぼす"]},{"number":50,"word":"situation","answers":["状況","立場"]},{"number":51,"word":"environment","answers":["環境"]},{"number":52,"word":"skill","answers":["技能","技術","熟練"]},{"number":53,"word":"matter","answers":["事柄","問題","重要である"]},{"number":54,"word":"view","answers":["見解","眺め","見る"]},{"number":55,"word":"value","answers":["価値","価格","評価する","尊重する"]},{"number":56,"word":"species","answers":["種","種類"]},{"number":57,"word":"thought","answers":["考え","思考"]},{"number":58,"word":"knowledge","answers":["知識","知っていること","認識"]},{"number":59,"word":"memory","answers":["記憶","記憶力","思い出"]},{"number":60,"word":"practice","answers":["実践","実行","練習する"]},{"number":61,"word":"benefit","answers":["利益","恩恵","利益を与える"]},{"number":62,"word":"theory","answers":["学説","理論","原理","推測"]},{"number":63,"word":"issue","answers":["問題点","発行物","発表する"]},{"number":64,"word":"experiment","answers":["実験","実験する"]},{"number":65,"word":"article","answers":["記事","条項","品物"]},{"number":66,"word":"focus","answers":["焦点","関心の的","集中する"]},{"number":67,"word":"subject","answers":["話題","科目","主題","被験者"]},{"number":68,"word":"project","answers":["計画","事業","研究計画","計画する"]},{"number":69,"word":"quality","answers":["質","品質","特質"]},{"number":70,"word":"role","answers":["役割"]},{"number":71,"word":"term","answers":["用語","期間","条件"]},{"number":72,"word":"statement","answers":["声明","主張","明細書"]},{"number":73,"word":"material","answers":["材料","素材","資料"]},{"number":74,"word":"evidence","answers":["証拠"]},{"number":75,"word":"source","answers":["源","根源","出所","情報源"]},{"number":76,"word":"community","answers":["共同社会","地域社会","共同体"]},{"number":77,"word":"technology","answers":["科学技術","技術"]},{"number":78,"word":"culture","answers":["文化","教養","耕作"]},{"number":79,"word":"appropriate","answers":["適切な","ふさわしい"]},{"number":80,"word":"likely","answers":["ありそうな","可能性が高い"]},{"number":81,"word":"possible","answers":["可能な","可能性のある"]},{"number":82,"word":"individual","answers":["個々の","個人の","個人"]},{"number":83,"word":"public","answers":["公の","公衆の","公衆"]},{"number":84,"word":"common","answers":["共通の","普通の","一般の"]},{"number":85,"word":"certain","answers":["確信して","確かな","ある特定の"]},{"number":86,"word":"similar","answers":["似ている","類似した"]},{"number":87,"word":"recent","answers":["最近の"]},{"number":88,"word":"major","answers":["主要な","大きい","専攻する"]},{"number":89,"word":"patient","answers":["忍耐強い","勤勉な","患者"]},{"number":90,"word":"particular","answers":["特定の","特別の","特に"]},{"number":91,"word":"physical","answers":["身体の","物理的な"]},{"number":92,"word":"various","answers":["さまざまな","いくつかの"]},{"number":93,"word":"available","answers":["手に入る","利用できる","空いている"]},{"number":94,"word":"native","answers":["出生地の","原産の","母語の","生まれた人"]},{"number":95,"word":"political","answers":["政治の","政治上の"]},{"number":96,"word":"due","answers":["予定された","支払期日の","当然の"]},{"number":97,"word":"blank","answers":["空白の","無表情な","空欄"]},{"number":98,"word":"ancient","answers":["古代の","昔からの"]},{"number":99,"word":"correct","answers":["正しい","適切な","訂正する"]},{"number":100,"word":"despite","answers":["にもかかわらず"]},{"number":101,"word":"notice","answers":["気づく","通知","注目"]},{"number":102,"word":"refer","answers":["言及する","関連する","参照する"]},{"number":103,"word":"approach","answers":["近づく","取り組む","接近","方法"]},{"number":104,"word":"wonder","answers":["かなと思う","驚く","不思議"]},{"number":105,"word":"imagine","answers":["想像する","推測する"]},{"number":106,"word":"recognize","answers":["識別する","認める","気づく"]},{"number":107,"word":"solve","answers":["解く","解決する"]},{"number":108,"word":"occur","answers":["起こる","心に浮かぶ","現れる"]},{"number":109,"word":"argue","answers":["主張する","論じる","言い争う"]},{"number":110,"word":"claim","answers":["主張する","要求する","主張"]},{"number":111,"word":"express","answers":["表す","述べる","急行の"]},{"number":112,"word":"draw","answers":["引き出す","引く","描く","近づく"]},{"number":113,"word":"waste","answers":["浪費する","無駄にする","廃棄物"]},{"number":114,"word":"advance","answers":["進歩させる","進む","前進"]},{"number":115,"word":"spread","answers":["広める","広がる","広がり"]},{"number":116,"word":"prepare","answers":["準備する","調理する"]},{"number":117,"word":"gain","answers":["獲得する","増す","利益"]},{"number":118,"word":"achieve","answers":["達成する","成し遂げる"]},{"number":119,"word":"establish","answers":["確立する","設立する"]},{"number":120,"word":"supply","answers":["供給する","供給","生活必需品"]},{"number":121,"word":"suppose","answers":["思う","仮定する"]},{"number":122,"word":"perform","answers":["行う","演じる","演奏する"]},{"number":123,"word":"prefer","answers":["より好む","好む"]},{"number":124,"word":"determine","answers":["決定する","正確に知る"]},{"number":125,"word":"treat","answers":["扱う","治療する","もてなす"]},{"number":126,"word":"prove","answers":["証明する","判明する"]},{"number":127,"word":"apply","answers":["適用する","申し込む","当てはまる"]},{"number":128,"word":"mention","answers":["言及する","述べる"]},{"number":129,"word":"communicate","answers":["情報交換する","伝達する"]},{"number":130,"word":"contain","answers":["含む","収容する","抑える"]},{"number":131,"word":"contact","answers":["連絡を取る","接触する","連絡"]},{"number":132,"word":"regard","answers":["見なす","見る","尊敬","配慮"]},{"number":133,"word":"respect","answers":["尊敬する","尊重する","点"]},{"number":134,"word":"search","answers":["捜す","検索する","詳しく調べる"]},{"number":135,"word":"connect","answers":["つなぐ","関連づける"]},{"number":136,"word":"decline","answers":["減少する","衰退する","断る"]},{"number":137,"word":"prevent","answers":["妨げる","防ぐ"]},{"number":138,"word":"suffer","answers":["苦しむ","患う","経験する"]},{"number":139,"word":"survive","answers":["生き残る","切り抜ける"]},{"number":140,"word":"publish","answers":["出版する","公表する"]},{"number":141,"word":"opportunity","answers":["機会"]},{"number":142,"word":"task","answers":["仕事","作業","課題"]},{"number":143,"word":"industry","answers":["産業","勤勉"]},{"number":144,"word":"medium","answers":["媒体","手段","中間の"]},{"number":145,"word":"economy","answers":["経済","節約"]},{"number":146,"word":"policy","answers":["政策","方針","主義"]},{"number":147,"word":"account","answers":["説明","勘定","口座","考慮"]},{"number":148,"word":"trade","answers":["貿易","商売","取引"]},{"number":149,"word":"model","answers":["模範","模型","型","モデル"]},{"number":150,"word":"figure","answers":["数字","姿","人物","図表","判断する"]},{"number":151,"word":"cell","answers":["細胞","独房","電池"]},{"number":152,"word":"image","answers":["印象","イメージ","画像","像"]},{"number":153,"word":"emotion","answers":["感情","情動"]},{"number":154,"word":"stress","answers":["ストレス","圧力","強調する"]},{"number":155,"word":"decade","answers":["10年間"]},{"number":156,"word":"range","answers":["範囲","射程距離","並ぶ"]},{"number":157,"word":"character","answers":["性格","個性","特徴","登場人物","文字"]},{"number":158,"word":"advantage","answers":["利点","優勢","有利"]},{"number":159,"word":"phrase","answers":["句","成句","言葉遣い"]},{"number":160,"word":"damage","answers":["損害","損傷","損傷を与える"]},{"number":161,"word":"impact","answers":["影響","衝撃"]},{"number":162,"word":"method","answers":["方法","体系","秩序"]},{"number":163,"word":"resource","answers":["資源","財源"]},{"number":164,"word":"region","answers":["地域","領域","部位"]},{"number":165,"word":"medicine","answers":["薬","医学"]},{"number":166,"word":"detail","answers":["詳細","細部"]},{"number":167,"word":"feature","answers":["特徴","顔つき","特集する"]},{"number":168,"word":"function","answers":["機能","関数","機能する"]},{"number":169,"word":"access","answers":["利用","入手","接近","アクセスする"]},{"number":170,"word":"item","answers":["品目","項目","品物"]},{"number":171,"word":"income","answers":["収入","所得"]},{"number":172,"word":"attitude","answers":["態度","考え方","心構え"]},{"number":173,"word":"site","answers":["用地","場所","跡地","サイト"]},{"number":174,"word":"aspect","answers":["側面","観点","様相"]},{"number":175,"word":"structure","answers":["構造","体系","構造物"]},{"number":176,"word":"habit","answers":["習慣","癖"]},{"number":177,"word":"link","answers":["関連","つながり","結び付ける"]},{"number":178,"word":"instance","answers":["例","実例","場合"]},{"number":179,"word":"positive","answers":["肯定的な","積極的な","陽性の","確信して"]},{"number":180,"word":"negative","answers":["否定的な","消極的な","陰性の"]},{"number":181,"word":"complex","answers":["複雑な","複合体","コンプレックス"]},{"number":182,"word":"current","answers":["現在の","現代の","通用している","流れ"]},{"number":183,"word":"mental","answers":["精神の","知能の","頭の中で行う"]},{"number":184,"word":"specific","answers":["特定の","明確な","具体的な","特有の"]},{"number":185,"word":"significant","answers":["重要な","重大な","意味深い"]},{"number":186,"word":"essential","answers":["必要不可欠な","本質的な"]},{"number":187,"word":"official","answers":["公用の","公式の","役所の","役人"]},{"number":188,"word":"financial","answers":["財政上の","財界の"]},{"number":189,"word":"academic","answers":["学問の","大学の"]},{"number":190,"word":"aware","answers":["気づいて","知って"]},{"number":191,"word":"worth","answers":["価値がある","値する","価値"]},{"number":192,"word":"potential","answers":["潜在的な","可能性を秘めた","可能性"]},{"number":193,"word":"active","answers":["積極的な","活動的な","効力のある"]},{"number":194,"word":"digital","answers":["デジタル方式の","数字の"]},{"number":195,"word":"mobile","answers":["可動式の","移動式の","流動性のある"]},{"number":196,"word":"novel","answers":["斬新な","目新しい","小説"]},{"number":197,"word":"plastic","answers":["柔軟な","プラスチックの"]},{"number":198,"word":"chemical","answers":["化学の","化学的な","化学薬品"]},{"number":199,"word":"necessary","answers":["必要な"]},{"number":200,"word":"eventually","answers":["結局","最終的には"]},{"number":201,"word":"identify","answers":["特定する","識別する"]},{"number":202,"word":"represent","answers":["表す","代表する","相当する"]},{"number":203,"word":"indicate","answers":["指し示す","示唆する"]},{"number":204,"word":"manage","answers":["なんとか成し遂げる","管理する"]},{"number":205,"word":"attend","answers":["出席する","世話をする","注意を向ける"]},{"number":206,"word":"maintain","answers":["維持する","主張する","養う"]},{"number":207,"word":"survey","answers":["調査する","見渡す","概観する"]},{"number":208,"word":"replace","answers":["取って代わる","取り替える"]},{"number":209,"word":"sort","answers":["分類する","種類"]},{"number":210,"word":"conduct","answers":["実施する","行う","案内する"]},{"number":211,"word":"associate","answers":["結び付けて考える","交際する","仲間"]},{"number":212,"word":"attempt","answers":["試みる","企てる","試み"]},{"number":213,"word":"promote","answers":["促進する","昇進させる"]},{"number":214,"word":"earn","answers":["稼ぐ","得る","もたらす"]},{"number":215,"word":"unite","answers":["団結させる","結合する"]},{"number":216,"word":"feed","answers":["食べ物を与える","養う"]},{"number":217,"word":"seek","answers":["追い求める","捜し求める"]},{"number":218,"word":"observe","answers":["気づく","観察する","遵守する"]},{"number":219,"word":"reveal","answers":["明らかにする","見せる"]},{"number":220,"word":"estimate","answers":["推定する","見積もる","評価する"]},{"number":221,"word":"reflect","answers":["反映する","反射する","熟考する"]},{"number":222,"word":"attract","answers":["引きつける"]},{"number":223,"word":"decrease","answers":["減少する","減らす"]},{"number":224,"word":"ignore","answers":["無視する"]},{"number":225,"word":"match","answers":["合う","匹敵する","一致する","試合"]},{"number":226,"word":"define","answers":["定義する","明確にする"]},{"number":227,"word":"adapt","answers":["適応する","適合させる"]},{"number":228,"word":"contribute","answers":["貢献する","一因となる","寄付する"]},{"number":229,"word":"exchange","answers":["交換する","両替する","交流"]},{"number":230,"word":"display","answers":["示す","発揮する","展示する"]},{"number":231,"word":"respond","answers":["反応する","答える"]},{"number":232,"word":"hide","answers":["隠す","隠れる"]},{"number":233,"word":"doubt","answers":["疑う","ではないと思う","疑い"]},{"number":234,"word":"remove","answers":["取り除く","解雇する"]},{"number":235,"word":"wind","answers":["巻く","曲がる","風"]},{"number":236,"word":"assume","answers":["当然と思う","仮定する","引き受ける"]},{"number":237,"word":"relax","answers":["くつろぐ","緩む","緩和する"]},{"number":238,"word":"satisfy","answers":["満足させる","満たす"]},{"number":239,"word":"desire","answers":["強く望む","欲望"]},{"number":240,"word":"succeed","answers":["成功する","継承する"]},{"number":241,"word":"concept","answers":["概念","考え"]},{"number":242,"word":"fashion","answers":["流行","方法","流儀"]},{"number":243,"word":"device","answers":["装置","機器","方策"]},{"number":244,"word":"charge","answers":["料金","世話","管理","告発","請求する"]},{"number":245,"word":"contrast","answers":["対照","対比する"]},{"number":246,"word":"colleague","answers":["同僚"]},{"number":247,"word":"pain","answers":["苦痛","痛み"]},{"number":248,"word":"bill","answers":["請求書","勘定","法案"]},{"number":249,"word":"content","answers":["内容","中身","満足した"]},{"number":250,"word":"section","answers":["部門","部分","地区","欄"]},{"number":251,"word":"audience","answers":["聴衆","観客","視聴者"]},{"number":252,"word":"surface","answers":["表面","外見"]},{"number":253,"word":"crop","answers":["作物","収穫"]},{"number":254,"word":"topic","answers":["話題","トピック","主題"]},{"number":255,"word":"technique","answers":["技術","技巧","手法"]},{"number":256,"word":"status","answers":["地位","状態"]},{"number":257,"word":"option","answers":["選択","選択肢","自由"]},{"number":258,"word":"reward","answers":["報酬","報い"]},{"number":259,"word":"race","answers":["人種","民族","競争"]},{"number":260,"word":"crime","answers":["罪","犯罪","違法行為"]},{"number":261,"word":"conflict","answers":["争い","論争","不一致"]},{"number":262,"word":"struggle","answers":["闘い","懸命の努力","もがく"]},{"number":263,"word":"context","answers":["状況","背景","文脈"]},{"number":264,"word":"debate","answers":["討論","論争","討論する"]},{"number":265,"word":"fuel","answers":["燃料","勢いを増加させる"]},{"number":266,"word":"pollution","answers":["汚染","公害"]},{"number":267,"word":"trend","answers":["傾向","流行"]},{"number":268,"word":"balance","answers":["均衡","バランス","残高"]},{"number":269,"word":"traffic","answers":["交通","通行","輸送"]},{"number":270,"word":"strategy","answers":["戦略"]},{"number":271,"word":"basis","answers":["基礎","根拠","基準"]},{"number":272,"word":"consequence","answers":["結果","重大性"]},{"number":273,"word":"aim","answers":["目的","目標","狙い","目指す"]},{"number":274,"word":"ancestor","answers":["祖先","原型"]},{"number":275,"word":"gene","answers":["遺伝子"]},{"number":276,"word":"track","answers":["跡","軌道","道","追跡する"]},{"number":277,"word":"revolution","answers":["革命","回転"]},{"number":278,"word":"progress","answers":["進歩","前進","進歩する"]},{"number":279,"word":"cognitive","answers":["認知の"]},{"number":280,"word":"ideal","answers":["理想的な","観念的な","理想"]},{"number":281,"word":"efficient","answers":["効率的な","有能な"]},{"number":282,"word":"universal","answers":["普遍的な","宇宙の","万能の"]},{"number":283,"word":"vast","answers":["莫大な","広大な"]},{"number":284,"word":"extra","answers":["追加の","余分の","別勘定の"]},{"number":285,"word":"entire","answers":["全体の","全部の"]},{"number":286,"word":"familiar","answers":["精通している","よく知られた"]},{"number":287,"word":"obvious","answers":["明らかな"]},{"number":288,"word":"moral","answers":["道徳上の","倫理的な","教訓"]},{"number":289,"word":"ordinary","answers":["一般の","普通の","並の"]},{"number":290,"word":"equal","answers":["等しい","匹敵する","平等な"]},{"number":291,"word":"previous","answers":["以前の","前の"]},{"number":292,"word":"false","answers":["間違った","虚偽の","偽の"]},{"number":293,"word":"rare","answers":["まれな","珍しい","希少な"]},{"number":294,"word":"legal","answers":["法律の","合法の"]},{"number":295,"word":"independent","answers":["独立した"]},{"number":296,"word":"extreme","answers":["極端な","極度の","過激な"]},{"number":297,"word":"actual","answers":["実際の","現実の"]},{"number":298,"word":"willing","answers":["いとわない","進んでする"]},{"number":299,"word":"urban","answers":["都市の","都会の"]},{"number":300,"word":"whereas","answers":["一方で","に対して"]},{"number":301,"word":"predict","answers":["予測する","予言する","予想する"]},{"number":302,"word":"examine","answers":["調べる","検査する","診察する","考察する"]},{"number":303,"word":"trust","answers":["信頼する","信用する","信頼","信用"]},{"number":304,"word":"stick","answers":["くっつく","貼り付ける","突き刺す","棒","固執する"]},{"number":305,"word":"emerge","answers":["現れる","出現する","明らかになる","浮かび上がる"]},{"number":306,"word":"vary","answers":["異なる","変わる","変化する"]},{"number":307,"word":"release","answers":["解放する","放出する","発売する","発表する","解放"]},{"number":308,"word":"divide","answers":["分ける","分割する","割る","隔てる"]},{"number":309,"word":"enable","answers":["可能にする","できるようにする"]},{"number":310,"word":"judge","answers":["判断する","裁く","裁判官","判定する"]},{"number":311,"word":"rely","answers":["頼る","依存する","信頼する"]},{"number":312,"word":"engage","answers":["従事する","参加する","引き込む","雇う"]},{"number":313,"word":"shift","answers":["移す","移動する","変える","変化","交代"]},{"number":314,"word":"adopt","answers":["採用する","採択する","養子にする"]},{"number":315,"word":"acquire","answers":["獲得する","得る","習得する","身につける"]},{"number":316,"word":"expand","answers":["拡大する","広げる","膨張する"]},{"number":317,"word":"refuse","answers":["拒む","拒否する","断る"]},{"number":318,"word":"strike","answers":["打つ","襲う","ぶつかる","ストライキ","印象を与える"]},{"number":319,"word":"repeat","answers":["繰り返す","反復する"]},{"number":320,"word":"consume","answers":["消費する","食べる","使い果たす"]},{"number":321,"word":"confuse","answers":["混乱させる","困惑させる","取り違える"]},{"number":322,"word":"select","answers":["選ぶ","選択する","選び出す"]},{"number":323,"word":"evolve","answers":["進化する","発展する","徐々に発達する"]},{"number":324,"word":"convince","answers":["納得させる","確信させる","説得する"]},{"number":325,"word":"recall","answers":["思い出す","呼び戻す","回収する","記憶"]},{"number":326,"word":"destroy","answers":["破壊する","滅ぼす"]},{"number":327,"word":"preserve","answers":["保存する","保護する","維持する"]},{"number":328,"word":"organize","answers":["組織する","整理する","計画する"]},{"number":329,"word":"warn","answers":["警告する","注意する"]},{"number":330,"word":"address","answers":["対処する","取り組む","演説する","住所","宛てる"]},{"number":331,"word":"extend","answers":["延長する","伸ばす","広げる","及ぶ"]},{"number":332,"word":"appreciate","answers":["感謝する","正しく理解する","高く評価する","鑑賞する"]},{"number":333,"word":"target","answers":["目標","標的","対象","狙う"]},{"number":334,"word":"element","answers":["要素","成分","元素"]},{"number":335,"word":"principle","answers":["原理","原則","主義"]},{"number":336,"word":"phenomenon","answers":["現象"]},{"number":337,"word":"atmosphere","answers":["雰囲気","大気","空気"]},{"number":338,"word":"origin","answers":["起源","由来","出身"]},{"number":339,"word":"personality","answers":["性格","個性","人格"]},{"number":340,"word":"capacity","answers":["能力","容量","収容力"]},{"number":341,"word":"profit","answers":["利益","収益","得をする"]},{"number":342,"word":"circumstance","answers":["状況","事情","境遇"]},{"number":343,"word":"manner","answers":["方法","やり方","態度","作法"]},{"number":344,"word":"threat","answers":["脅威","脅迫","兆し"]},{"number":345,"word":"resident","answers":["住民","居住者"]},{"number":346,"word":"wealth","answers":["富","財産","豊富"]},{"number":347,"word":"institution","answers":["機関","制度","施設"]},{"number":348,"word":"authority","answers":["権威","権限","当局"]},{"number":349,"word":"vote","answers":["投票","投票する","票"]},{"number":350,"word":"sight","answers":["光景","視力","見ること","名所"]},{"number":351,"word":"campaign","answers":["運動","キャンペーン","選挙運動"]},{"number":352,"word":"fund","answers":["資金","基金","資金を提供する"]},{"number":353,"word":"web","answers":["網","ウェブ","クモの巣"]},{"number":354,"word":"symbol","answers":["象徴","記号","シンボル"]},{"number":355,"word":"analysis","answers":["分析","解析"]},{"number":356,"word":"version","answers":["版","型","バージョン"]},{"number":357,"word":"perspective","answers":["観点","視点","見方","遠近法"]},{"number":358,"word":"crisis","answers":["危機"]},{"number":359,"word":"disaster","answers":["災害","惨事"]},{"number":360,"word":"lecture","answers":["講義","講演","説教"]},{"number":361,"word":"psychology","answers":["心理学","心理"]},{"number":362,"word":"gender","answers":["性別","ジェンダー"]},{"number":363,"word":"custom","answers":["習慣","慣習","税関","特注の"]},{"number":364,"word":"court","answers":["裁判所","法廷","中庭","コート"]},{"number":365,"word":"desert","answers":["砂漠","見捨てる"]},{"number":366,"word":"soil","answers":["土","土壌","汚す"]},{"number":367,"word":"agriculture","answers":["農業"]},{"number":368,"word":"fossil","answers":["化石"]},{"number":369,"word":"document","answers":["文書","書類","記録する"]},{"number":370,"word":"vocabulary","answers":["語彙","単語"]},{"number":371,"word":"intelligent","answers":["知能の高い","賢い","知的な"]},{"number":372,"word":"conscious","answers":["意識している","意識のある","気づいている"]},{"number":373,"word":"capable","answers":["能力がある","可能な","有能な"]},{"number":374,"word":"accurate","answers":["正確な","的確な"]},{"number":375,"word":"fundamental","answers":["基本的な","根本的な","基礎"]},{"number":376,"word":"artificial","answers":["人工の","人造の","不自然な"]},{"number":377,"word":"firm","answers":["しっかりした","堅い","断固とした","会社"]},{"number":378,"word":"overall","answers":["全体的な","総合的な","全体として"]},{"number":379,"word":"rural","answers":["田舎の","農村の"]},{"number":380,"word":"military","answers":["軍事の","軍隊の","軍"]},{"number":381,"word":"nuclear","answers":["核の","原子力の"]},{"number":382,"word":"biological","answers":["生物学的な","生物の"]},{"number":383,"word":"constant","answers":["絶え間ない","一定の","不変の","定数"]},{"number":384,"word":"severe","answers":["厳しい","深刻な","激しい"]},{"number":385,"word":"visual","answers":["視覚の","目に見える"]},{"number":386,"word":"enormous","answers":["莫大な","巨大な"]},{"number":387,"word":"convenient","answers":["便利な","都合のよい"]},{"number":388,"word":"domestic","answers":["国内の","家庭の","飼いならされた"]},{"number":389,"word":"mass","answers":["大量の","大衆","塊","質量"]},{"number":390,"word":"typical","answers":["典型的な","代表的な"]},{"number":391,"word":"overseas","answers":["海外へ","海外の"]},{"number":392,"word":"nevertheless","answers":["それにもかかわらず","それでも"]},{"number":393,"word":"moreover","answers":["そのうえ","さらに"]},{"number":394,"word":"otherwise","answers":["さもなければ","その他の点では","別の方法で"]},{"number":395,"word":"throughout","answers":["至る所に","ずっと","全体を通して"]},{"number":396,"word":"within","answers":["以内に","内側に","の中で"]},{"number":397,"word":"despite","answers":["にもかかわらず"]},{"number":398,"word":"unlike","answers":["と違って","似ていない"]},{"number":399,"word":"per","answers":["につき","ごとに"]},{"number":400,"word":"via","answers":["経由で","によって"]}];
+
+const STORAGE = {
+  words:"target_words_v2",
+  stats:"target_stats_v2",
+  qmark:"target_qmark_v2",
+  draft:"target_draft_v2",
+  sessions:"target_sessions_v2",
+  manualWeak:"target_manual_weak_v3",
+  removedWeak:"target_removed_weak_v3",
+  snapshots:"target_snapshots_v4",
+  autoBackup:"target_auto_backup_v4",
+  wordMeta:"target_word_meta_v5",
+  dailyGoal:"target_daily_goal_v5",
+  preferences:"target_preferences_v5",
+  lastSettings:"target_last_settings_v5",
+  presets:"target_presets_v5",
+  lastResult:"target_last_result_v52"
+};
+
+const storedWords = loadJSON(STORAGE.words, []);
+const storedMap = new Map((Array.isArray(storedWords)?storedWords:[]).map(w=>[w.number,w]));
+let words = DEFAULT_WORDS.map(w=>storedMap.get(w.number)||w);
+for(const w of storedMap.values()) if(!words.some(x=>x.number===w.number)) words.push(w);
+words.sort((a,b)=>a.number-b.number);
+let stats = loadJSON(STORAGE.stats, {});
+let qhistory = new Set(loadJSON(STORAGE.qmark, []));
+let sessions = loadJSON(STORAGE.sessions, []);
+let manualWeak = new Set(loadJSON(STORAGE.manualWeak, []));
+let removedWeak = new Set(loadJSON(STORAGE.removedWeak, []));
+let snapshots = loadJSON(STORAGE.snapshots, []);
+let wordMeta = loadJSON(STORAGE.wordMeta, {});
+let dailyGoal = +localStorage.getItem(STORAGE.dailyGoal) || 100;
+let preferences = loadJSON(STORAGE.preferences, {appearance:"light",theme:"#111111"});
+let lastSettings = loadJSON(STORAGE.lastSettings, null);
+let presets = loadJSON(STORAGE.presets, []);
+let lastTestConfig = null;
+let current = [];
+let currentRows = [];
+let timerId = null;
+let endAt = null;
+let lastBad = [];
+let autosaveTimer = null;
+let activeFilter = "all";
+let lastResultRows = loadJSON(STORAGE.lastResult, []);
+
+const $ = id => document.getElementById(id);
+
+function loadJSON(key, fallback){
+  try{
+    const x = JSON.parse(localStorage.getItem(key));
+    return x ?? fallback;
+  }catch{return fallback}
+}
+function saveCore(){
+  localStorage.setItem(STORAGE.words, JSON.stringify(words));
+  localStorage.setItem(STORAGE.stats, JSON.stringify(stats));
+  localStorage.setItem(STORAGE.qmark, JSON.stringify([...qhistory]));
+  localStorage.setItem(STORAGE.sessions, JSON.stringify(sessions.slice(-200)));
+  localStorage.setItem(STORAGE.manualWeak, JSON.stringify([...manualWeak]));
+  localStorage.setItem(STORAGE.removedWeak, JSON.stringify([...removedWeak]));
+  localStorage.setItem(STORAGE.wordMeta, JSON.stringify(wordMeta));
+}
+
+function currentDataPackage(){
+  return {
+    version:5,
+    savedAt:new Date().toISOString(),
+    words,
+    stats,
+    qmark:[...qhistory],
+    sessions,
+    manualWeak:[...manualWeak],
+    removedWeak:[...removedWeak],
+    wordMeta,dailyGoal,preferences,lastSettings,presets
+  };
+}
+function applyDataPackage(d){
+  if(!d || !Array.isArray(d.words) || typeof d.stats!=="object") throw new Error("invalid");
+  words=d.words;
+  stats=d.stats||{};
+  qhistory=new Set(d.qmark||[]);
+  sessions=d.sessions||[];
+  manualWeak=new Set(d.manualWeak||[]);
+  removedWeak=new Set(d.removedWeak||[]);
+  wordMeta=d.wordMeta||{};
+  dailyGoal=+d.dailyGoal||100;
+  preferences=d.preferences||{appearance:"light",theme:"#111111"};
+  lastSettings=d.lastSettings||null;
+  presets=d.presets||[];
+  localStorage.setItem(STORAGE.presets,JSON.stringify(presets));
+  localStorage.setItem(STORAGE.dailyGoal,dailyGoal);
+  localStorage.setItem(STORAGE.preferences,JSON.stringify(preferences));
+  saveCore();
+}
+function makeAutoBackup(force=false){
+  const previous=loadJSON(STORAGE.autoBackup,null);
+  const now=Date.now();
+  const oldTime=previous?.savedAt ? new Date(previous.savedAt).getTime() : 0;
+  if(force || !previous || now-oldTime>12*60*60*1000){
+    localStorage.setItem(STORAGE.autoBackup,JSON.stringify(currentDataPackage()));
+  }
+  renderBackupList();
+}
+function createSnapshot(){
+  const label=prompt("保存名を入力してください。","手動保存 "+new Date().toLocaleDateString("ja-JP"));
+  if(label===null)return;
+  snapshots.unshift({
+    id:Date.now(),
+    label:label.trim()||"手動保存",
+    savedAt:new Date().toISOString(),
+    data:currentDataPackage()
+  });
+  snapshots=snapshots.slice(0,8);
+  localStorage.setItem(STORAGE.snapshots,JSON.stringify(snapshots));
+  renderBackupList();
+}
+function restoreSnapshot(kind,id=null){
+  let d=null;
+  if(kind==="auto")d=loadJSON(STORAGE.autoBackup,null);
+  else d=snapshots.find(x=>x.id===id)?.data;
+  if(!d){alert("復元データがありません。");return}
+  if(!confirm("現在の学習データを、この保存状態に戻しますか？"))return;
+  try{
+    applyDataPackage(d);
+    refreshResumeBox();
+    renderBackupList();
+    alert("復元しました。");
+  }catch{alert("保存データを復元できませんでした。")}
+}
+function deleteSnapshot(id){
+  if(!confirm("この復元ポイントを削除しますか？"))return;
+  snapshots=snapshots.filter(x=>x.id!==id);
+  localStorage.setItem(STORAGE.snapshots,JSON.stringify(snapshots));
+  renderBackupList();
+}
+function renderBackupList(){
+  const auto=loadJSON(STORAGE.autoBackup,null);
+  const autoHtml=auto?`
+    <div class="backup-item">
+      <div class="backup-head">
+        <div><div class="backup-name">自動バックアップ</div>
+        <div class="backup-meta">${formatDateTime(auto.savedAt)}・総回答 ${Object.values(auto.stats||{}).reduce((a,s)=>a+(s.attempts||0),0)}回</div></div>
+        <button class="secondary" onclick="restoreSnapshot('auto')">復元</button>
+      </div>
+    </div>`:`<div class="backup-item"><div class="small">自動バックアップはまだありません。</div></div>`;
+  const manual=snapshots.map(x=>`
+    <div class="backup-item">
+      <div class="backup-head">
+        <div><div class="backup-name">${escapeHtml(x.label)}</div>
+        <div class="backup-meta">${formatDateTime(x.savedAt)}</div></div>
+        <div class="actions" style="margin-top:0">
+          <button class="secondary" onclick="restoreSnapshot('manual',${x.id})">復元</button>
+          <button class="danger" onclick="deleteSnapshot(${x.id})">削除</button>
+        </div>
+      </div>
+    </div>`).join("");
+  $("backupList").innerHTML=autoHtml+manual;
+}
+function formatDateTime(iso){
+  if(!iso)return "日時不明";
+  const d=new Date(iso);
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+function dayKey(iso){
+  const d=new Date(iso);
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+function learningStreak(){
+  const days=[...new Set(sessions.map(s=>dayKey(s.date)))];
+  if(!days.length)return 0;
+  let streak=0;
+  const d=new Date();
+  for(let i=0;i<365;i++){
+    const k=`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    if(days.includes(k))streak++;
+    else if(i===0){ d.setDate(d.getDate()-1); continue; }
+    else break;
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+
+
+function metaFor(n){
+  if(!wordMeta[n])wordMeta[n]={favorite:false,readingCount:0,review:false,note:"",updatedAt:""};
+  return wordMeta[n];
+}
+function isFading(n){
+  const s=statFor(n);
+  if(!s.attempts || !s.lastTested)return false;
+  const d=daysSince(s.lastTested);
+  return s.correctStreak>=1 && d>=5 && d<=30 && weaknessScore(n)<70;
+}
+function recommendedWords(){
+  return [...words].sort((a,b)=>{
+    const scoreA=weaknessScore(a.number)+(isFading(a.number)?25:0)+(metaFor(a.number).review?20:0);
+    const scoreB=weaknessScore(b.number)+(isFading(b.number)?25:0)+(metaFor(b.number).review?20:0);
+    return scoreB-scoreA;
+  }).filter(w=>weaknessScore(w.number)>0 || isFading(w.number) || metaFor(w.number).review);
+}
+function todayAnswered(){
+  const k=dayKey(new Date().toISOString());
+  return sessions.filter(s=>dayKey(s.date)===k).reduce((a,s)=>a+(s.count||0),0);
+}
+function updateDashboard(){
+  const done=todayAnswered(),pct=Math.min(100,Math.round(done/dailyGoal*100));
+  $("todayDone").textContent=done;$("todayGoalText").textContent=dailyGoal;
+  $("goalPct").textContent=pct+"%";$("goalRing").style.setProperty("--pct",pct+"%");
+  $("goalRemain").textContent=done>=dailyGoal?"今日の目標達成":`あと${dailyGoal-done}問`;
+  $("dailyGoal").value=dailyGoal;
+  const rec=recommendedWords();
+  $("recommendText").textContent=rec.length?`優先候補は ${rec[0].word} など${Math.min(rec.length,100)}語です。`:"苦手データがまだありません。";
+}
+function applyPreferences(){
+  document.body.classList.toggle("dark",preferences.appearance==="dark");
+  document.documentElement.style.setProperty("--accent",preferences.theme||"#111111");
+  document.documentElement.style.setProperty("--accentText","#fff");
+  $("appearanceSelect").value=preferences.appearance;
+  $("themeSelect").value=preferences.theme;
+}
+function renderWordManager(){
+  const q=normalize($("wordSearch").value);
+  const filter=$("wordFilter").value,sort=$("wordSort").value;
+  let rows=words.filter(w=>{
+    const m=metaFor(w.number);
+    const hay=normalize(`${w.number} ${w.word} ${w.answers.join(" ")} ${m.note||""}`);
+    if(q && !hay.includes(q))return false;
+    if(filter==="favorite"&&!m.favorite)return false;
+    if(filter==="reading"&&!(m.readingCount>0))return false;
+    if(filter==="review"&&!m.review)return false;
+    if(filter==="weak"&&!isWeak(w.number))return false;
+    return true;
+  });
+  rows.sort((a,b)=>{
+    if(sort==="weak")return weaknessScore(b.number)-weaknessScore(a.number);
+    if(sort==="reading")return (metaFor(b.number).readingCount||0)-(metaFor(a.number).readingCount||0);
+    if(sort==="recent")return new Date(metaFor(b.number).updatedAt||0)-new Date(metaFor(a.number).updatedAt||0);
+    return a.number-b.number;
+  });
+  $("wordManagerSummary").textContent=`${rows.length}語を表示`;
+  $("wordManagerBody").innerHTML=rows.map(w=>{
+    const m=metaFor(w.number);
+    return `<div class="word-card">
+      <div class="word-top"><div><b>${w.number} ${escapeHtml(w.word)}</b><div class="small">${w.answers.map(escapeHtml).join("／")}</div></div>
+      <div><button class="icon-btn ${m.favorite?"on":""}" onclick="toggleWordFlag(${w.number},'favorite')">★</button>
+      <button class="icon-btn ${m.review?"on":""}" onclick="toggleWordFlag(${w.number},'review')">復習</button></div></div>
+      <div style="margin-top:8px"><span class="tag">苦手度 ${weaknessScore(w.number)}</span><span class="tag">長文 ${m.readingCount||0}回</span></div>
+      <div class="actions"><button class="secondary" onclick="addReading(${w.number})">長文で見た＋1</button><button class="secondary" onclick="testOneWeak(${w.number})">1問テスト</button></div>
+      <textarea rows="2" placeholder="メモ" onchange="saveWordNote(${w.number},this.value)">${escapeHtml(m.note||"")}</textarea>
+    </div>`;
+  }).join("") || `<div class="card empty-state">該当する単語はありません。</div>`;
+}
+function toggleWordFlag(n,key){
+  const m=metaFor(n);m[key]=!m[key];m.updatedAt=new Date().toISOString();saveCore();renderWordManager();
+}
+function addReading(n){
+  const m=metaFor(n);m.readingCount=(m.readingCount||0)+1;m.updatedAt=new Date().toISOString();saveCore();renderWordManager();
+}
+function saveWordNote(n,v){
+  const m=metaFor(n);m.note=v;m.updatedAt=new Date().toISOString();saveCore();
+}
+function renderCalendar(){
+  const box=$("studyCalendar"); if(!box)return;
+  const counts={};sessions.forEach(s=>{const k=dayKey(s.date);counts[k]=(counts[k]||0)+(s.count||0)});
+  let out="";
+  const now=new Date();
+  for(let i=27;i>=0;i--){
+    const d=new Date(now);d.setDate(now.getDate()-i);
+    const k=dayKey(d.toISOString()),c=counts[k]||0;
+    const level=c>=300?4:c>=150?3:c>=50?2:c>0?1:0;
+    out+=`<div class="cal-day l${level}" title="${k}: ${c}問">${d.getDate()}</div>`;
+  }
+  box.innerHTML=out;
+}
+function topList(items,id){
+  $(id).innerHTML=items.slice(0,5).map(w=>`<li>${w.number} ${escapeHtml(w.word)}</li>`).join("")||"<li>該当なし</li>";
+}
+function renderAnalysis(){
+  topList(words.filter(w=>isFading(w.number)).sort((a,b)=>daysSince(statFor(b.number).lastTested)-daysSince(statFor(a.number).lastTested)),"fadingList");
+  topList(words.filter(w=>statFor(w.number).correctStreak===2 && isWeak(w.number)),"almostList");
+  topList(words.filter(w=>statFor(w.number).lastMistakeAt).sort((a,b)=>new Date(statFor(b.number).lastMistakeAt)-new Date(statFor(a.number).lastMistakeAt)),"recentMissList");
+  topList(words.filter(w=>removedWeak.has(w.number) && statFor(w.number).correctStreak>=3),"masteredList");
+  drawCharts();
+}
+function dailySeries(days=14){
+  const map={};
+  sessions.forEach(s=>{const k=dayKey(s.date);if(!map[k])map[k]={count:0,correct:0,partial:0,wrong:0};map[k].count+=s.count||0;map[k].correct+=s.correct||0;map[k].partial+=s.partial||0;map[k].wrong+=s.wrong||0});
+  const out=[],now=new Date();
+  for(let i=days-1;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);const k=dayKey(d.toISOString());out.push({label:`${d.getMonth()+1}/${d.getDate()}`,...(map[k]||{count:0,correct:0,partial:0,wrong:0})});}
+  return out;
+}
+function drawLine(canvas,values,labels,maxVal){
+  const dpr=window.devicePixelRatio||1,w=canvas.clientWidth,h=canvas.clientHeight;
+  canvas.width=w*dpr;canvas.height=h*dpr;const c=canvas.getContext("2d");c.scale(dpr,dpr);c.clearRect(0,0,w,h);
+  c.strokeStyle=getComputedStyle(document.body).color;c.globalAlpha=.22;c.beginPath();c.moveTo(35,10);c.lineTo(35,h-28);c.lineTo(w-8,h-28);c.stroke();c.globalAlpha=1;
+  c.strokeStyle=preferences.theme;c.lineWidth=3;c.beginPath();
+  values.forEach((v,i)=>{const x=35+i*(w-48)/Math.max(1,values.length-1),y=h-28-(v/Math.max(1,maxVal))*(h-45);i?c.lineTo(x,y):c.moveTo(x,y)});
+  c.stroke();c.fillStyle=getComputedStyle(document.body).color;c.font="10px sans-serif";
+  labels.forEach((l,i)=>{if(i%3===0)c.fillText(l,28+i*(w-48)/Math.max(1,labels.length-1),h-10)});
+}
+function drawCharts(){
+  const s=dailySeries(),labels=s.map(x=>x.label);
+  drawLine($("volumeChart"),s.map(x=>x.count),labels,Math.max(100,...s.map(x=>x.count)));
+  drawLine($("accuracyChart"),s.map(x=>{const t=x.correct+x.partial+x.wrong;return t?Math.round(x.correct/t*100):0}),labels,100);
+}
+
+
+function rangeBounds(){
+  const nums=words.map(w=>w.number).filter(Number.isFinite);
+  return {min:Math.min(...nums),max:Math.max(...nums)};
+}
+function selectedRangeSize(){
+  const start=+$(`startNo`).value||rangeBounds().min,end=+$(`endNo`).value||rangeBounds().max;
+  return words.filter(w=>w.number>=Math.min(start,end)&&w.number<=Math.max(start,end)).length;
+}
+function maxTimeSeconds(countOverride=null){
+  const count=Math.max(1,countOverride ?? (+$(`count`).value||1));
+  return count*10;
+}
+function formatDuration(sec){
+  if(sec===0)return '無制限';
+  const m=Math.floor(sec/60),s=Math.round(sec%60);
+  return s?`${m}分${s}秒`:`${m}分`;
+}
+function updateTimeLimitNote(enforce=false){
+  const maxSec=maxTimeSeconds();
+  const input=$('minutes');
+  let sec=Math.max(0,(+input.value||0)*60);
+  if(enforce && sec>maxSec){sec=maxSec;input.value=(sec/60).toFixed(2).replace(/0+$/,'').replace(/\.$/,'');}
+  $('timeLimitNote').textContent=`最長 ${formatDuration(maxSec)}${sec>maxSec?'（入力値は開始時に短縮）':''}`;
+}
+function validateSettings(){
+  const b=rangeBounds();
+  let start=+$('startNo').value,end=+$('endNo').value;
+  if(!Number.isFinite(start)||!Number.isFinite(end))return '開始番号と終了番号を入力してください。';
+  if(start>end)[start,end]=[end,start];
+  start=Math.max(b.min,start);end=Math.min(b.max,end);
+  $('startNo').value=start;$('endNo').value=end;
+  const available=words.filter(w=>w.number>=start&&w.number<=end).length;
+  if(!available)return '指定範囲に登録単語がありません。';
+  let count=Math.max(1,+$('count').value||1);
+  count=Math.min(count,available);$('count').value=count;
+  updateTimeLimitNote(true);
+  return '';
+}
+function settingsSummary(){
+  const s=getCurrentSettings();
+  const seconds=Math.round(s.minutes*60);
+  const order=s.order==='random'?'ランダム':'番号順';
+  const mode=$('mode').selectedOptions[0]?.textContent||s.mode;
+  return `範囲：${s.start}〜${s.end}
+出題数：${s.count}問
+出題対象：${mode}
+順番：${order}
+制限時間：${formatDuration(seconds)}`;
+}
+function getCurrentSettings(){
+  return {start:+$("startNo").value||1,end:+$("endNo").value||400,count:+$("count").value||100,minutes:+$("minutes").value||0,order:$("order").value,mode:$("mode").value};
+}
+function applySettings(s){
+  if(!s)return;
+  $("startNo").value=s.start;$("endNo").value=s.end;$("count").value=s.count;$("minutes").value=s.minutes;$("order").value=s.order;$("mode").value=s.mode;
+}
+function startWithSettings(s){
+  applySettings(s);startTest();
+}
+function renderPresets(){
+  const sel=$("presetSelect");
+  sel.innerHTML='<option value="">保存した条件を選択</option>'+presets.map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+}
+function savePreset(){
+  const name=prompt('この条件の名前を入力してください。',`${$("startNo").value}〜${$("endNo").value} ${$("count").value}問`);
+  if(name===null)return;
+  presets.unshift({id:Date.now(),name:name.trim()||'条件',settings:getCurrentSettings()});
+  presets=presets.slice(0,12);localStorage.setItem(STORAGE.presets,JSON.stringify(presets));renderPresets();
+}
+function deletePreset(){
+  const id=+$("presetSelect").value;if(!id)return alert('削除する条件を選んでください。');
+  presets=presets.filter(p=>p.id!==id);localStorage.setItem(STORAGE.presets,JSON.stringify(presets));renderPresets();
+}
+
+function normalize(s){
+  return (s||"")
+    .replace(/[？?]\s*$/,"")
+    .replace(/\s+/g,"")
+    .replace(/[。、・，,]/g,"")
+    .toLowerCase();
+}
+function grade(answer,candidates){
+  const a = normalize(answer);
+  if(!a) return "×";
+  const cs = candidates.map(normalize).filter(Boolean);
+
+  if(cs.some(c => a===c)) return "○";
+  if(cs.some(c => a.includes(c) || (c.includes(a) && a.length>=2))) return "○";
+
+  const stems = cs.flatMap(c =>
+    c.split(/する|した|して|の|な|に|で|を|と|へ|が|は/)
+      .filter(x=>x.length>=2)
+  );
+  if(stems.some(x=>a.includes(x) || x.includes(a))) return "△";
+  return "×";
+}
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function statFor(n){
+  if(!stats[n]) stats[n]={attempts:0,correct:0,partial:0,wrong:0,lastGrade:"",lastAnswer:"",lastTested:"",lastMistakeAt:"",correctStreak:0};
+  if(stats[n].correctStreak==null)stats[n].correctStreak=0;
+  if(stats[n].lastMistakeAt==null)stats[n].lastMistakeAt="";
+  return stats[n];
+}
+function daysSince(iso){
+  if(!iso)return 999;
+  return Math.max(0,(Date.now()-new Date(iso).getTime())/86400000);
+}
+function weaknessScore(n){
+  const s=statFor(n);
+  const total=Math.max(1,s.attempts);
+  const errorRate=(s.wrong+s.partial*0.55)/total;
+  const recency=s.lastMistakeAt ? Math.max(0,1-daysSince(s.lastMistakeAt)/30) : 0;
+  const volume=Math.min(1,(s.wrong+s.partial*0.6)/5);
+  const streakRelief=Math.min(18,(s.correctStreak||0)*6);
+  let score=Math.round(errorRate*50+recency*30+volume*20-streakRelief);
+  if(manualWeak.has(n))score=Math.max(score,70);
+  if(removedWeak.has(n) && !manualWeak.has(n))score=0;
+  return Math.max(0,Math.min(100,score));
+}
+function weakLabel(score){
+  if(score>=85)return "かなり苦手";
+  if(score>=70)return "苦手";
+  if(score>=50)return "やや苦手";
+  if(score>=30)return "注意";
+  return "軽度";
+}
+function isWeak(n){
+  return manualWeak.has(n) || weaknessScore(n)>=30;
+}
+function switchView(id){
+  ["setup","test","results","history","weaklist","wordmanager","settings"].forEach(x=>$(x).classList.toggle("hidden",x!==id));
+  $("tabHome").classList.toggle("active",["setup","test","results"].includes(id));
+  $("tabWeak").classList.toggle("active",id==="weaklist");
+  $("tabStats").classList.toggle("active",id==="history");
+  $("tabWords").classList.toggle("active",id==="wordmanager");
+  $("tabSettings").classList.toggle("active",id==="settings");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function buildPool(){
+  const mode=$("mode").value, start=+$("startNo").value, end=+$("endNo").value;
+  let pool=words.filter(x=>x.number>=start&&x.number<=end);
+  if(mode==="weak") pool=pool.filter(x=>isWeak(x.number));
+  if(mode==="qmark") pool=pool.filter(x=>qhistory.has(x.number));
+  if(mode==="never") pool=pool.filter(x=>statFor(x.number).attempts===0);
+  if(mode==="wrong2") pool=pool.filter(x=>statFor(x.number).wrong>=2);
+  if(mode==="recent") pool=pool.filter(x=>statFor(x.number).lastMistakeAt && daysSince(statFor(x.number).lastMistakeAt)<=7);
+  if(mode==="fading") pool=pool.filter(x=>isFading(x.number));
+  if(mode==="favorite") pool=pool.filter(x=>metaFor(x.number).favorite);
+  if(mode==="reading") pool=pool.filter(x=>(metaFor(x.number).readingCount||0)>0);
+  if(mode==="recommended") pool=recommendedWords();
+  if($("order").value==="random") pool=shuffle([...pool]);
+  return pool.slice(0,Math.max(1,+$("count").value||100));
+}
+function startTest(custom=null, restoredAnswers=null, restoredRemainingMs=null){
+  if(!custom){
+    const err=validateSettings();if(err){alert(err);return}
+    if(restoredAnswers==null && !confirm(`この条件で開始しますか？
+
+${settingsSummary()}`))return;
+  }
+  lastTestConfig=getCurrentSettings();
+  lastSettings={...lastTestConfig};
+  localStorage.setItem(STORAGE.lastSettings,JSON.stringify(lastSettings));
+  clearInterval(timerId);
+  current = custom || buildPool();
+  if(!current.length){alert("条件に合う単語がありません。");return}
+
+  $("questions").innerHTML=current.map((x,i)=>`
+    <div class="qrow unanswered" id="row${i}">
+      <div class="qnum">${x.number}</div>
+      <div class="word">${escapeHtml(x.word)}</div>
+      <input id="a${i}" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="日本語">
+    </div>`).join("");
+
+  document.querySelectorAll("#questions input").forEach((el,i)=>{
+    if(restoredAnswers && restoredAnswers[i]) el.value=restoredAnswers[i];
+    el.addEventListener("input",()=>{updateProgress();queueDraftSave()});
+    el.addEventListener("keydown",e=>{
+      if(e.key==="Enter"){
+        e.preventDefault();
+        const next=$("a"+(i+1));
+        if(next){next.focus();next.scrollIntoView({block:"center",behavior:"smooth"})}
+      }
+    });
+  });
+
+  switchView("test");
+  updateProgress();
+
+  const mins=+$("minutes").value||0;
+  const cappedMs=mins>0?Math.min(mins*60000,maxTimeSeconds(current.length)*1000):0;
+  if(restoredRemainingMs!=null && restoredRemainingMs>0){
+    endAt=Date.now()+restoredRemainingMs;
+    tick();timerId=setInterval(tick,250);
+  }else if(cappedMs>0){
+    endAt=Date.now()+cappedMs;
+    tick();timerId=setInterval(tick,250);
+  }else{
+    endAt=null;$("timerTop").textContent="";
+  }
+  setTimeout(()=>$("a0")?.focus(),80);
+  saveDraft();
+}
+function getAnswers(){
+  return current.map((_,i)=>$("a"+i)?.value||"");
+}
+function updateProgress(){
+  const answers=getAnswers();
+  const answered=answers.filter(x=>normalize(x)!=="").length;
+  const unanswered=current.length-answered;
+  $("progressText").textContent=`${answered}/${current.length}回答`;
+  $("unansweredTop").textContent=`未回答 ${unanswered}`;
+  $("progressFill").style.width=`${Math.round(answered/current.length*100)}%`;
+  answers.forEach((v,i)=>{
+    const row=$("row"+i);
+    row?.classList.toggle("answered",normalize(v)!=="");
+    row?.classList.toggle("unanswered",normalize(v)==="");
+  });
+}
+function queueDraftSave(){
+  clearTimeout(autosaveTimer);
+  $("saveState").textContent="保存中…";
+  autosaveTimer=setTimeout(saveDraft,250);
+}
+function saveDraft(){
+  if(!current.length)return;
+  const draft={
+    words:current.map(x=>x.number),
+    answers:getAnswers(),
+    savedAt:new Date().toISOString(),
+    remainingMs:endAt?Math.max(0,endAt-Date.now()):null,
+    settings:{
+      startNo:$("startNo").value,endNo:$("endNo").value,count:$("count").value,
+      minutes:$("minutes").value,order:$("order").value,mode:$("mode").value
+    }
+  };
+  localStorage.setItem(STORAGE.draft,JSON.stringify(draft));
+  $("saveState").textContent="保存済み";
+  refreshResumeBox();
+}
+function clearDraft(){
+  localStorage.removeItem(STORAGE.draft);
+  refreshResumeBox();
+}
+function refreshResumeBox(){
+  const d=loadJSON(STORAGE.draft,null);
+  $("resumeBox").classList.toggle("hidden",!d);
+}
+function resumeDraft(){
+  const d=loadJSON(STORAGE.draft,null);
+  if(!d)return;
+  Object.entries(d.settings||{}).forEach(([k,v])=>{if($(k))$(k).value=v});
+  const pool=d.words.map(n=>words.find(w=>w.number===n)).filter(Boolean);
+  startTest(pool,d.answers,d.remainingMs);
+}
+function tick(){
+  const left=Math.max(0,endAt-Date.now()), sec=Math.ceil(left/1000);
+  $("timerTop").textContent=`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`;
+  if(left<=0){clearInterval(timerId);submitTest(true)}
+}
+function submitTest(auto=false){
+  const answers=getAnswers();
+  const unanswered=answers.filter(x=>normalize(x)==="").length;
+  if(!auto && unanswered>0 && !confirm(`未回答が${unanswered}問あります。このまま採点しますか？`)) return;
+
+  clearInterval(timerId);
+  $("timerTop").textContent="";
+  $("unansweredTop").textContent="";
+
+  currentRows=current.map((x,i)=>{
+    const raw=answers[i].trim();
+    const hasQ=/[？?]\s*$/.test(raw);
+    const g=grade(raw,x.answers);
+    return {...x,raw,hasQ,grade:g};
+  });
+
+  for(const r of currentRows){
+    const s=statFor(r.number);
+    s.attempts++;
+    if(r.grade==="○")s.correct++;
+    if(r.grade==="△")s.partial++;
+    if(r.grade==="×")s.wrong++;
+    s.lastGrade=r.grade;
+    s.lastAnswer=r.raw;
+    s.lastTested=new Date().toISOString();
+    if(r.grade==="○"){
+      s.correctStreak=(s.correctStreak||0)+1;
+      if((s.correctStreak||0)>=3 && !manualWeak.has(r.number)) removedWeak.add(r.number);
+    }else{
+      s.correctStreak=0;
+      s.lastMistakeAt=s.lastTested;
+      removedWeak.delete(r.number);
+    }
+    if(r.hasQ)qhistory.add(r.number); else qhistory.delete(r.number);
+  }
+
+  const counts={"○":0,"△":0,"×":0};
+  currentRows.forEach(r=>counts[r.grade]++);
+  lastBad=currentRows.filter(r=>r.grade!=="○");
+  lastResultRows=currentRows.map(r=>({number:r.number,grade:r.grade,raw:r.raw,hasQ:r.hasQ}));
+  localStorage.setItem(STORAGE.lastResult,JSON.stringify(lastResultRows));
+  sessions.push({
+    date:new Date().toISOString(),
+    count:currentRows.length,
+    correct:counts["○"],partial:counts["△"],wrong:counts["×"]
+  });
+  saveCore();
+  makeAutoBackup();
+  clearDraft();
+
+  $("stats").textContent=
+    `○ ${counts["○"]} / △ ${counts["△"]} / × ${counts["×"]}　正答率 ${Math.round(counts["○"]/currentRows.length*100)}%`
+    +(auto?"（時間切れで自動提出）":"");
+
+  const qrows=currentRows.filter(r=>r.grade==="○"&&r.hasQ);
+  $("reviewQ").classList.toggle("hidden",!qrows.length);
+  $("qmarkResults").innerHTML=qrows.map(renderResult).join("");
+  activeFilter="all";setActiveTab();
+  renderBadResults();
+  switchView("results");
+}
+function renderBadResults(){
+  const rows=lastBad.filter(r=>activeFilter==="all"||r.grade===activeFilter);
+  $("badResults").innerHTML=rows.length?rows.map(renderResult).join(""):"該当する項目はありません。";
+}
+function renderResult(r){
+  const cls=r.grade==="×"?"bad":r.grade==="△"?"mid":"qmark";
+  return `<div class="result ${cls}" data-n="${r.number}">
+    <div><span class="badge">${r.grade}</span><b>${r.number} ${escapeHtml(r.word)}</b></div>
+    <div>あなたの回答：${escapeHtml(r.raw)||"（空欄）"}</div>
+    <div>模範解答：${r.answers.map(escapeHtml).join("／")}</div>
+    <div class="result-meta">連続正解 ${statFor(r.number).correctStreak||0}回・苦手度 ${weaknessScore(r.number)}／100</div>
+    <div class="actions">
+      <button class="secondary" onclick="overrideGrade(${r.number},'○')">○に変更</button>
+      <button class="secondary" onclick="overrideGrade(${r.number},'△')">△に変更</button>
+      <button class="secondary" onclick="overrideGrade(${r.number},'×')">×に変更</button>
+    </div>
+  </div>`;
+}
+function overrideGrade(n,newGrade){
+  const row=currentRows.find(r=>r.number===n);
+  if(!row || row.grade===newGrade)return;
+  const s=statFor(n);
+  if(row.grade==="○")s.correct=Math.max(0,s.correct-1);
+  if(row.grade==="△")s.partial=Math.max(0,s.partial-1);
+  if(row.grade==="×")s.wrong=Math.max(0,s.wrong-1);
+  if(newGrade==="○")s.correct++;
+  if(newGrade==="△")s.partial++;
+  if(newGrade==="×")s.wrong++;
+  row.grade=newGrade;s.lastGrade=newGrade;
+  if(newGrade==="○"){
+    s.correctStreak=(s.correctStreak||0)+1;
+  }else{
+    s.correctStreak=0;
+    s.lastMistakeAt=new Date().toISOString();
+    removedWeak.delete(n);
+  }
+  lastBad=currentRows.filter(r=>r.grade!=="○");
+  saveCore();
+  makeAutoBackup();
+  renderBadResults();
+}
+function setActiveTab(){
+  $("tabAll").classList.toggle("active",activeFilter==="all");
+  $("tabMid").classList.toggle("active",activeFilter==="△");
+  $("tabBad").classList.toggle("active",activeFilter==="×");
+}
+
+function formatDate(iso){
+  if(!iso)return "記録なし";
+  const d=new Date(iso);
+  return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+}
+function getWeakRows(){
+  let rows=words.map(w=>({w,s:statFor(w.number),score:weaknessScore(w.number)}))
+    .filter(x=>isWeak(x.w.number));
+  const filter=$("weakFilter")?.value||"all";
+  if(filter==="severe")rows=rows.filter(x=>x.score>=70);
+  if(filter==="manual")rows=rows.filter(x=>manualWeak.has(x.w.number));
+  const sort=$("weakSort")?.value||"score";
+  rows.sort((a,b)=>{
+    if(sort==="recent")return new Date(b.s.lastMistakeAt||0)-new Date(a.s.lastMistakeAt||0);
+    if(sort==="wrong")return b.s.wrong-a.s.wrong || b.score-a.score;
+    if(sort==="number")return a.w.number-b.w.number;
+    return b.score-a.score || b.s.wrong-a.s.wrong;
+  });
+  return rows;
+}
+function renderWeakList(){
+  const rows=getWeakRows();
+  $("weakSummary").textContent=`${rows.length}語を表示`;
+  $("weakListBody").innerHTML=rows.length?rows.map(({w,s,score})=>`
+    <div class="weak-card">
+      <div class="weak-head">
+        <div>
+          <div class="weak-title">${w.number} ${escapeHtml(w.word)}</div>
+          <div class="small">${w.answers.map(escapeHtml).join("／")}</div>
+        </div>
+        <div class="weak-score">${weakLabel(score)} ${score}</div>
+      </div>
+      <div class="weak-bar"><div style="width:${score}%"></div></div>
+      <div class="weak-meta">
+        × ${s.wrong}回　△ ${s.partial}回　○ ${s.correct}回<br>
+        直近のミス：${formatDate(s.lastMistakeAt)}　連続正解：${s.correctStreak||0}回
+        ${manualWeak.has(w.number)?"　固定登録中":""}
+      </div>
+      <div class="weak-controls">
+        <button class="secondary" onclick="testOneWeak(${w.number})">1問テスト</button>
+        <button class="secondary" onclick="toggleManualWeak(${w.number})">${manualWeak.has(w.number)?"固定解除":"苦手に固定"}</button>
+        <button class="danger" onclick="removeWeak(${w.number})">消去</button>
+      </div>
+    </div>`).join(""):`<div class="card empty-state">条件に合う苦手単語はありません。</div>`;
+}
+function showWeakList(){
+  renderWeakList();
+  switchView("weaklist");
+}
+function toggleManualWeak(n){
+  if(manualWeak.has(n))manualWeak.delete(n);else{manualWeak.add(n);removedWeak.delete(n)}
+  saveCore();renderWeakList();
+}
+function removeWeak(n){
+  if(!confirm("この単語を苦手リストから消去しますか？\\n履歴自体は残ります。"))return;
+  manualWeak.delete(n);removedWeak.add(n);saveCore();renderWeakList();
+}
+function testOneWeak(n){
+  const w=words.find(x=>x.number===n);
+  if(w)startTest([w]);
+}
+
+function showHistory(){
+  const all=words.map(w=>({w,s:statFor(w.number)})).filter(x=>x.s.attempts>0);
+  const attempts=all.reduce((a,x)=>a+x.s.attempts,0);
+  const correct=all.reduce((a,x)=>a+x.s.correct,0);
+  $("historySummary").textContent=
+    `学習済み ${all.length}語　総回答 ${attempts}回　○率 ${attempts?Math.round(correct/attempts*100):0}%`;
+  const todayKey=dayKey(new Date().toISOString());
+  const today=sessions.filter(x=>dayKey(x.date)===todayKey).reduce((a,x)=>a+(x.count||0),0);
+  $("metricWords").textContent=all.length;
+  $("metricAttempts").textContent=attempts;
+  $("metricAccuracy").textContent=`${attempts?Math.round(correct/attempts*100):0}%`;
+  $("metricWeak").textContent=words.filter(w=>isWeak(w.number)).length;
+  $("metricToday").textContent=today;
+  $("metricStreak").textContent=`${learningStreak()}日`;
+  $("historyBody").innerHTML=all
+    .sort((a,b)=>(b.s.wrong+b.s.partial)-(a.s.wrong+a.s.partial)||a.w.number-b.w.number)
+    .map(({w,s})=>`<tr>
+      <td><b>${w.number} ${escapeHtml(w.word)}</b></td>
+      <td>${weaknessScore(w.number)}</td>
+      <td>${s.attempts}</td><td>${s.correct}</td><td>${s.partial}</td><td>${s.wrong}</td>
+      <td>${escapeHtml(s.lastGrade||"-")}</td>
+    </tr>`).join("");
+  renderCalendar();renderAnalysis();switchView("history");
+}
+function downloadJSON(name,obj){
+  const blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),500);
+}
+function escapeHtml(s){
+  return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+}
+
+$("startBtn").onclick=()=>startTest();
+$("submitBtn").onclick=()=>submitTest(false);
+$("retrySame").onclick=()=>{if(!lastTestConfig)return alert("直前の条件がありません。");startWithSettings(lastTestConfig)};
+$("changeAndRetry").onclick=()=>{applySettings(lastTestConfig);switchView("setup")};
+function retryRows(grades){
+  const rows=(currentRows.length?currentRows:lastResultRows).filter(r=>grades.includes(r.grade));
+  const pool=rows.map(r=>words.find(w=>w.number===r.number)).filter(Boolean);
+  if(!pool.length){alert('対象単語がありません。');return}
+  startTest(pool);
+}
+$("retryWrong").onclick=()=>retryRows(['×']);
+$("retryPartial").onclick=()=>retryRows(['△']);
+$("retryWeak").onclick=()=>retryRows(['△','×']);
+$("jumpFirstBlank").onclick=()=>{
+  const i=getAnswers().findIndex(x=>normalize(x)==="");
+  if(i<0){alert("未回答はありません。");return}
+  $("a"+i).focus();$("a"+i).scrollIntoView({block:"center",behavior:"smooth"});
+};
+$("saveExitBtn").onclick=()=>{saveDraft();clearInterval(timerId);$("timerTop").textContent="";$("unansweredTop").textContent="";switchView("setup")};
+$("resumeBtn").onclick=resumeDraft;
+$("discardDraftBtn").onclick=()=>{if(confirm("途中保存データを破棄しますか？"))clearDraft()};
+$("showHistoryBtn").onclick=showHistory;
+$("historyBackBtn").onclick=()=>switchView("setup");
+
+$("tabAll").onclick=()=>{activeFilter="all";setActiveTab();renderBadResults()};
+$("tabMid").onclick=()=>{activeFilter="△";setActiveTab();renderBadResults()};
+$("tabBad").onclick=()=>{activeFilter="×";setActiveTab();renderBadResults()};
+
+
+$("createSnapshotBtn").onclick=createSnapshot;
+$("autoBackupNowBtn").onclick=()=>{makeAutoBackup(true);alert("自動バックアップを更新しました。")};
+
+$("exportAllBtn").onclick=()=>downloadJSON("target_batch_test_backup.json",{
+  version:5.1,exportedAt:new Date().toISOString(),words,stats,qmark:[...qhistory],sessions,manualWeak:[...manualWeak],removedWeak:[...removedWeak]
+});
+$("exportWordsBtn").onclick=()=>downloadJSON("target_words.json",words);
+$("importAllBtn").onclick=()=>$("fileInputAll").click();
+$("importWordsBtn").onclick=()=>$("fileInputWords").click();
+
+$("fileInputAll").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const d=JSON.parse(await f.text());
+    if(!Array.isArray(d.words)||typeof d.stats!=="object")throw 0;
+    applyDataPackage(d);makeAutoBackup(true);alert("全データを復元しました。");
+  }catch{alert("バックアップ形式が正しくありません。")}
+  e.target.value="";
+};
+$("fileInputWords").onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const d=JSON.parse(await f.text());
+    if(!Array.isArray(d)||!d.every(x=>x.number&&x.word&&Array.isArray(x.answers)))throw 0;
+    words=d;saveCore();alert(`${d.length}語を読み込みました。`);
+  }catch{alert("単語JSONの形式が正しくありません。")}
+  e.target.value="";
+};
+$("clearHistory").onclick=()=>{
+  if(confirm("学習履歴・苦手履歴・？履歴をすべて消しますか？\n消去直前の状態は自動バックアップに残します。")){
+    makeAutoBackup(true);
+    stats={};qhistory.clear();sessions=[];manualWeak.clear();removedWeak.clear();saveCore();clearDraft();renderBackupList();alert("消去しました。");
+  }
+};
+
+
+$("tabHome").onclick=()=>{updateDashboard();switchView("setup")};
+$("tabWeak").onclick=showWeakList;
+$("tabStats").onclick=showHistory;
+$("weakSort").onchange=renderWeakList;
+$("weakFilter").onchange=renderWeakList;
+$("refreshWeakBtn").onclick=renderWeakList;
+$("testWeakListBtn").onclick=()=>{
+  const pool=getWeakRows().map(x=>x.w);
+  if(!pool.length){alert("表示中の苦手単語がありません。");return}
+  startTest(pool.slice(0,Math.max(1,+$("count").value||100)));
+};
+
+
+document.querySelectorAll("[data-range]").forEach(btn=>btn.onclick=()=>{
+  let a,b;if(btn.dataset.range==='all'){const bounds=rangeBounds();a=bounds.min;b=bounds.max}else [a,b]=btn.dataset.range.split('-').map(Number);
+  $('startNo').value=a;$('endNo').value=b;$('count').value=words.filter(w=>w.number>=a&&w.number<=b).length;$('mode').value='range';updateTimeLimitNote(true);
+});
+document.querySelectorAll('[data-count]').forEach(btn=>btn.onclick=()=>{
+  const available=selectedRangeSize();$('count').value=btn.dataset.count==='all'?available:Math.min(+btn.dataset.count,available);updateTimeLimitNote(true);
+});
+document.querySelectorAll('[data-time-ratio]').forEach(btn=>btn.onclick=()=>{
+  const ratio=+btn.dataset.timeRatio;if(ratio===0){$('minutes').value=0}else{const sec=maxTimeSeconds()*ratio;$('minutes').value=(sec/60).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}updateTimeLimitNote(false);
+});
+['count','startNo','endNo'].forEach(id=>$(id).addEventListener('input',()=>updateTimeLimitNote(false)));
+$('minutes').addEventListener('input',()=>updateTimeLimitNote(false));
+$("savePresetBtn").onclick=savePreset;
+$("deletePresetBtn").onclick=deletePreset;
+$("presetSelect").onchange=()=>{const p=presets.find(x=>x.id===+$("presetSelect").value);if(p)applySettings(p.settings)};
+$("tabWords").onclick=()=>{renderWordManager();switchView("wordmanager")};
+$("tabSettings").onclick=()=>switchView("settings");
+$("wordSearch").oninput=renderWordManager;
+$("wordFilter").onchange=renderWordManager;
+$("wordSort").onchange=renderWordManager;
+$("clearSearchBtn").onclick=()=>{$("wordSearch").value="";renderWordManager()};
+$("saveGoalBtn").onclick=()=>{dailyGoal=Math.max(1,+$("dailyGoal").value||100);localStorage.setItem(STORAGE.dailyGoal,dailyGoal);updateDashboard()};
+$("recommendTestBtn").onclick=()=>{const p=recommendedWords().slice(0,Math.max(1,+$("count").value||100));if(!p.length)return alert("おすすめ対象がありません。");startTest(p)};
+$("repeatLastBtn").onclick=()=>{if(!lastSettings)return alert("前回条件がありません。");$("startNo").value=lastSettings.start;$("endNo").value=lastSettings.end;$("count").value=lastSettings.count;$("minutes").value=lastSettings.minutes;$("order").value=lastSettings.order;$("mode").value=lastSettings.mode;alert("前回条件を設定しました。")};
+$("appearanceSelect").onchange=()=>{preferences.appearance=$("appearanceSelect").value;localStorage.setItem(STORAGE.preferences,JSON.stringify(preferences));applyPreferences()};
+$("themeSelect").onchange=()=>{preferences.theme=$("themeSelect").value;localStorage.setItem(STORAGE.preferences,JSON.stringify(preferences));applyPreferences();drawCharts()};
+
+window.addEventListener("beforeunload",()=>{if(!$("test").classList.contains("hidden"))saveDraft()});
+refreshResumeBox();
+makeAutoBackup();
+renderBackupList();
+applyPreferences();
+renderPresets();
+$("registeredWordCount").textContent=words.length;
+updateDashboard();
+updateTimeLimitNote(false);
+</script>
+</body>
+</html>
