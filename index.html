@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f5f5f7">
-<title>Target Batch Test Ver.5.1</title>
+<title>Target Batch Test Ver.5.2</title>
 <style>
 :root{
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
@@ -172,13 +172,13 @@ body.dark .tag{background:#34363a}
 @media(max-width:760px){.dashboard-grid{grid-template-columns:1fr}.analysis-grid{grid-template-columns:1fr}}
 
 
-.quick-range-wrap{margin-top:12px}.quick-range{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}.quick-range button{padding:8px 11px}.preset-row{display:grid;grid-template-columns:minmax(180px,1fr) auto auto;gap:8px;margin-top:10px}.version-card{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:13px;line-height:1.7}.result-actions button{min-width:190px}.result-actions{align-items:stretch}@media(max-width:700px){.preset-row{grid-template-columns:1fr}.result-actions button{width:100%}}
+.quick-range-wrap{margin-top:12px}.quick-range{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}.quick-range button{padding:8px 11px}.preset-row{display:grid;grid-template-columns:minmax(180px,1fr) auto auto;gap:8px;margin-top:10px}.version-card{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:13px;line-height:1.7}.result-actions button{min-width:170px}.quick-count,.quick-time{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}.quick-count button,.quick-time button{padding:8px 11px}.limit-note{margin-top:6px;font-size:12px;color:var(--muted)}.result-actions{align-items:stretch}@media(max-width:700px){.preset-row{grid-template-columns:1fr}.result-actions button{width:100%}}
 </style>
 </head>
 <body>
 <header>
   <div class="header-inner">
-    <div style="display:flex;align-items:center;gap:8px"><h1>Target Batch Test</h1><span style="font-size:12px;font-weight:800;background:#111;color:#fff;padding:3px 8px;border-radius:999px">Ver.5.1</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><h1>Target Batch Test</h1><span style="font-size:12px;font-weight:800;background:#111;color:#fff;padding:3px 8px;border-radius:999px">Ver.5.2</span></div>
     <div class="top-status">
       <span id="unansweredTop"></span>
       <span id="timerTop" class="timer"></span>
@@ -227,7 +227,7 @@ body.dark .tag{background:#34363a}
     <label>開始番号<input id="startNo" type="number" value="1" min="1" max="1900"></label>
     <label>終了番号<input id="endNo" type="number" value="400" min="1" max="1900"></label>
     <label>出題数<input id="count" type="number" value="100" min="1"></label>
-    <label>制限時間（分・0で無制限）<input id="minutes" type="number" value="5" min="0"></label>
+    <label>制限時間（分・0で無制限）<input id="minutes" type="number" value="5" min="0" step="0.1"><span id="timeLimitNote" class="limit-note"></span></label>
     <label>出題順
       <select id="order">
         <option value="normal">番号順</option>
@@ -256,7 +256,26 @@ body.dark .tag{background:#34363a}
       <button class="secondary" data-range="101-200">101〜200</button>
       <button class="secondary" data-range="201-300">201〜300</button>
       <button class="secondary" data-range="301-400">301〜400</button>
-      <button class="secondary" data-range="1-400">1〜400</button>
+      <button class="secondary" data-range="all">全範囲</button>
+    </div>
+  </div>
+  <div class="quick-range-wrap">
+    <div class="small"><b>問題数</b></div>
+    <div class="quick-count">
+      <button class="secondary" data-count="10">10問</button>
+      <button class="secondary" data-count="20">20問</button>
+      <button class="secondary" data-count="50">50問</button>
+      <button class="secondary" data-count="100">100問</button>
+      <button class="secondary" data-count="all">範囲内すべて</button>
+    </div>
+  </div>
+  <div class="quick-range-wrap">
+    <div class="small"><b>制限時間</b>（最長＝出題数×10秒）</div>
+    <div class="quick-time">
+      <button class="secondary" data-time-ratio="0.5">最長の50%</button>
+      <button class="secondary" data-time-ratio="0.75">最長の75%</button>
+      <button class="secondary" data-time-ratio="1">最長</button>
+      <button class="secondary" data-time-ratio="0">無制限</button>
     </div>
   </div>
   <div class="preset-row">
@@ -323,7 +342,9 @@ body.dark .tag{background:#34363a}
     <div class="actions result-actions">
       <button id="retrySame">同じ条件でもう一度</button>
       <button class="secondary" id="changeAndRetry">条件を変えてもう一度</button>
-      <button class="secondary" id="retryWeak">今回の△・×だけ再テスト</button>
+      <button class="secondary" id="retryWrong">今回の×だけ再テスト</button>
+      <button class="secondary" id="retryPartial">今回の△だけ再テスト</button>
+      <button class="secondary" id="retryWeak">今回の△・×を再テスト</button>
     </div>
   </div>
 
@@ -463,9 +484,9 @@ body.dark .tag{background:#34363a}
     </div>
     <div class="notice" style="margin-top:12px">設定はこの端末に保存されます。</div>
     <div class="version-card">
-      <b>Target Batch Test Ver.5.1</b>
+      <b>Target Batch Test Ver.5.2</b>
       <div>登録単語数 <strong id="registeredWordCount">400</strong> / 1900</div>
-      <div class="small">Target 1900：1〜400収録。1900語まで同じ形式で拡張可能です。</div>
+      <div class="small">Target 1900：現在の登録範囲を自動認識。「全範囲」は語数追加後もそのまま使用できます。</div>
     </div>
   </div>
 </section>
@@ -498,7 +519,8 @@ const STORAGE = {
   dailyGoal:"target_daily_goal_v5",
   preferences:"target_preferences_v5",
   lastSettings:"target_last_settings_v5",
-  presets:"target_presets_v5"
+  presets:"target_presets_v5",
+  lastResult:"target_last_result_v52"
 };
 
 const storedWords = loadJSON(STORAGE.words, []);
@@ -525,6 +547,7 @@ let endAt = null;
 let lastBad = [];
 let autosaveTimer = null;
 let activeFilter = "all";
+let lastResultRows = loadJSON(STORAGE.lastResult, []);
 
 const $ = id => document.getElementById(id);
 
@@ -788,6 +811,55 @@ function drawCharts(){
 }
 
 
+function rangeBounds(){
+  const nums=words.map(w=>w.number).filter(Number.isFinite);
+  return {min:Math.min(...nums),max:Math.max(...nums)};
+}
+function selectedRangeSize(){
+  const start=+$(`startNo`).value||rangeBounds().min,end=+$(`endNo`).value||rangeBounds().max;
+  return words.filter(w=>w.number>=Math.min(start,end)&&w.number<=Math.max(start,end)).length;
+}
+function maxTimeSeconds(countOverride=null){
+  const count=Math.max(1,countOverride ?? (+$(`count`).value||1));
+  return count*10;
+}
+function formatDuration(sec){
+  if(sec===0)return '無制限';
+  const m=Math.floor(sec/60),s=Math.round(sec%60);
+  return s?`${m}分${s}秒`:`${m}分`;
+}
+function updateTimeLimitNote(enforce=false){
+  const maxSec=maxTimeSeconds();
+  const input=$('minutes');
+  let sec=Math.max(0,(+input.value||0)*60);
+  if(enforce && sec>maxSec){sec=maxSec;input.value=(sec/60).toFixed(2).replace(/0+$/,'').replace(/\.$/,'');}
+  $('timeLimitNote').textContent=`最長 ${formatDuration(maxSec)}${sec>maxSec?'（入力値は開始時に短縮）':''}`;
+}
+function validateSettings(){
+  const b=rangeBounds();
+  let start=+$('startNo').value,end=+$('endNo').value;
+  if(!Number.isFinite(start)||!Number.isFinite(end))return '開始番号と終了番号を入力してください。';
+  if(start>end)[start,end]=[end,start];
+  start=Math.max(b.min,start);end=Math.min(b.max,end);
+  $('startNo').value=start;$('endNo').value=end;
+  const available=words.filter(w=>w.number>=start&&w.number<=end).length;
+  if(!available)return '指定範囲に登録単語がありません。';
+  let count=Math.max(1,+$('count').value||1);
+  count=Math.min(count,available);$('count').value=count;
+  updateTimeLimitNote(true);
+  return '';
+}
+function settingsSummary(){
+  const s=getCurrentSettings();
+  const seconds=Math.round(s.minutes*60);
+  const order=s.order==='random'?'ランダム':'番号順';
+  const mode=$('mode').selectedOptions[0]?.textContent||s.mode;
+  return `範囲：${s.start}〜${s.end}
+出題数：${s.count}問
+出題対象：${mode}
+順番：${order}
+制限時間：${formatDuration(seconds)}`;
+}
 function getCurrentSettings(){
   return {start:+$("startNo").value||1,end:+$("endNo").value||400,count:+$("count").value||100,minutes:+$("minutes").value||0,order:$("order").value,mode:$("mode").value};
 }
@@ -899,6 +971,12 @@ function buildPool(){
   return pool.slice(0,Math.max(1,+$("count").value||100));
 }
 function startTest(custom=null, restoredAnswers=null, restoredRemainingMs=null){
+  if(!custom){
+    const err=validateSettings();if(err){alert(err);return}
+    if(restoredAnswers==null && !confirm(`この条件で開始しますか？
+
+${settingsSummary()}`))return;
+  }
   lastTestConfig=getCurrentSettings();
   lastSettings={...lastTestConfig};
   localStorage.setItem(STORAGE.lastSettings,JSON.stringify(lastSettings));
@@ -929,11 +1007,12 @@ function startTest(custom=null, restoredAnswers=null, restoredRemainingMs=null){
   updateProgress();
 
   const mins=+$("minutes").value||0;
+  const cappedMs=mins>0?Math.min(mins*60000,maxTimeSeconds(current.length)*1000):0;
   if(restoredRemainingMs!=null && restoredRemainingMs>0){
     endAt=Date.now()+restoredRemainingMs;
     tick();timerId=setInterval(tick,250);
-  }else if(mins>0){
-    endAt=Date.now()+mins*60000;
+  }else if(cappedMs>0){
+    endAt=Date.now()+cappedMs;
     tick();timerId=setInterval(tick,250);
   }else{
     endAt=null;$("timerTop").textContent="";
@@ -1037,6 +1116,8 @@ function submitTest(auto=false){
   const counts={"○":0,"△":0,"×":0};
   currentRows.forEach(r=>counts[r.grade]++);
   lastBad=currentRows.filter(r=>r.grade!=="○");
+  lastResultRows=currentRows.map(r=>({number:r.number,grade:r.grade,raw:r.raw,hasQ:r.hasQ}));
+  localStorage.setItem(STORAGE.lastResult,JSON.stringify(lastResultRows));
   sessions.push({
     date:new Date().toISOString(),
     count:currentRows.length,
@@ -1067,7 +1148,7 @@ function renderResult(r){
     <div><span class="badge">${r.grade}</span><b>${r.number} ${escapeHtml(r.word)}</b></div>
     <div>あなたの回答：${escapeHtml(r.raw)||"（空欄）"}</div>
     <div>模範解答：${r.answers.map(escapeHtml).join("／")}</div>
-    <div class="result-meta">この判定は現在、登録済み語義との照合です。</div>
+    <div class="result-meta">連続正解 ${statFor(r.number).correctStreak||0}回・苦手度 ${weaknessScore(r.number)}／100</div>
     <div class="actions">
       <button class="secondary" onclick="overrideGrade(${r.number},'○')">○に変更</button>
       <button class="secondary" onclick="overrideGrade(${r.number},'△')">△に変更</button>
@@ -1204,10 +1285,15 @@ $("startBtn").onclick=()=>startTest();
 $("submitBtn").onclick=()=>submitTest(false);
 $("retrySame").onclick=()=>{if(!lastTestConfig)return alert("直前の条件がありません。");startWithSettings(lastTestConfig)};
 $("changeAndRetry").onclick=()=>{applySettings(lastTestConfig);switchView("setup")};
-$("retryWeak").onclick=()=>{
-  const pool=lastBad.map(r=>words.find(w=>w.number===r.number)).filter(Boolean);
+function retryRows(grades){
+  const rows=(currentRows.length?currentRows:lastResultRows).filter(r=>grades.includes(r.grade));
+  const pool=rows.map(r=>words.find(w=>w.number===r.number)).filter(Boolean);
+  if(!pool.length){alert('対象単語がありません。');return}
   startTest(pool);
-};
+}
+$("retryWrong").onclick=()=>retryRows(['×']);
+$("retryPartial").onclick=()=>retryRows(['△']);
+$("retryWeak").onclick=()=>retryRows(['△','×']);
 $("jumpFirstBlank").onclick=()=>{
   const i=getAnswers().findIndex(x=>normalize(x)==="");
   if(i<0){alert("未回答はありません。");return}
@@ -1273,7 +1359,18 @@ $("testWeakListBtn").onclick=()=>{
 };
 
 
-document.querySelectorAll("[data-range]").forEach(btn=>btn.onclick=()=>{const [a,b]=btn.dataset.range.split("-").map(Number);$("startNo").value=a;$("endNo").value=b;$("count").value=b-a+1;$("mode").value="range"});
+document.querySelectorAll("[data-range]").forEach(btn=>btn.onclick=()=>{
+  let a,b;if(btn.dataset.range==='all'){const bounds=rangeBounds();a=bounds.min;b=bounds.max}else [a,b]=btn.dataset.range.split('-').map(Number);
+  $('startNo').value=a;$('endNo').value=b;$('count').value=words.filter(w=>w.number>=a&&w.number<=b).length;$('mode').value='range';updateTimeLimitNote(true);
+});
+document.querySelectorAll('[data-count]').forEach(btn=>btn.onclick=()=>{
+  const available=selectedRangeSize();$('count').value=btn.dataset.count==='all'?available:Math.min(+btn.dataset.count,available);updateTimeLimitNote(true);
+});
+document.querySelectorAll('[data-time-ratio]').forEach(btn=>btn.onclick=()=>{
+  const ratio=+btn.dataset.timeRatio;if(ratio===0){$('minutes').value=0}else{const sec=maxTimeSeconds()*ratio;$('minutes').value=(sec/60).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')}updateTimeLimitNote(false);
+});
+['count','startNo','endNo'].forEach(id=>$(id).addEventListener('input',()=>updateTimeLimitNote(false)));
+$('minutes').addEventListener('input',()=>updateTimeLimitNote(false));
 $("savePresetBtn").onclick=savePreset;
 $("deletePresetBtn").onclick=deletePreset;
 $("presetSelect").onchange=()=>{const p=presets.find(x=>x.id===+$("presetSelect").value);if(p)applySettings(p.settings)};
@@ -1297,6 +1394,7 @@ applyPreferences();
 renderPresets();
 $("registeredWordCount").textContent=words.length;
 updateDashboard();
+updateTimeLimitNote(false);
 </script>
 </body>
 </html>
