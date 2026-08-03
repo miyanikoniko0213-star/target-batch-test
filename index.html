@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="受験英単語">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="./icons/icon-180.png">
+<link rel="apple-touch-icon" href="./icon-180.png">
 <title>受験英単語</title>
 <style>
 :root{
@@ -133,7 +133,7 @@ input,select,textarea,button{max-width:100%}
 @media(max-width:620px){.stage-title{font-size:20px}.stage-count{font-size:23px}.stage-head{gap:8px}.stage-foot{display:block;line-height:1.7}}
 
 
-/* Ver.8.0 PWA */
+/* Ver.8.0.1 PWA */
 .update-banner{position:fixed;z-index:230;left:12px;right:12px;bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom));max-width:720px;margin:auto;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:17px;padding:13px 14px;box-shadow:0 18px 50px rgba(15,23,42,.24);display:flex;align-items:center;justify-content:space-between;gap:12px}
 .update-banner-copy{min-width:0}.update-banner-copy b{display:block;font-size:14px;margin-bottom:2px}.update-banner-copy span{display:block;font-size:11px;color:var(--muted);line-height:1.45}.update-banner-actions{display:flex;gap:7px;flex:none}
 .offline-badge{position:fixed;z-index:220;right:12px;top:calc(var(--header-h) + 10px);font-size:11px;font-weight:850;border-radius:999px;padding:7px 10px;background:#7c2d12;color:#fff;box-shadow:0 8px 22px rgba(0,0,0,.18)}
@@ -146,7 +146,7 @@ body.test-mode .update-banner{display:none!important}
 <div id="runtimeBanner" class="runtime-banner hidden"><b>アプリ内でエラーが発生しました</b><span id="runtimeMessage"></span></div>
 <header id="appHeader" class="app-header">
   <div class="header-inner">
-    <div class="brand"><div class="brand-mark">英</div><div><div class="brand-title">受験英単語</div><div id="brandStageText" class="small">まずは800単語。</div></div><span class="version">Ver.8.0 PWA</span></div>
+    <div class="brand"><div class="brand-mark">英</div><div><div class="brand-title">受験英単語</div><div id="brandStageText" class="small">まずは800単語。</div></div><span class="version">Ver.8.0.1 PWA</span></div>
     <div id="headerStatus" class="header-status">準備完了</div>
   </div>
 </header>
@@ -241,7 +241,7 @@ body.test-mode .update-banner{display:none!important}
 <section id="view-settings" class="view hidden">
   <div class="card"><div class="card-title"><div><div class="eyebrow">Preferences</div><h2>表示・学習設定</h2></div></div><div class="grid2"><label>表示モード<select id="appearanceSelect"><option value="system">端末設定に合わせる</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label>テーマカラー<select id="themeSelect"><option value="#315efb">ブルー</option><option value="#7c3aed">パープル</option><option value="#15803d">グリーン</option><option value="#c2413b">レッド</option><option value="#111827">ブラック</option></select></label><label>1日の目標<input id="dailyGoalInput" type="number" min="1" value="100"></label></div><div class="section-divider"></div><div class="toggle-row"><div><b>アプリを離れたら自動中断</b><div class="small">テスト中に別アプリへ移動した際、時間計測を止めます。</div></div><label class="switch"><input id="autoPauseToggle" type="checkbox" checked><span></span></label></div><div class="actions" style="margin-top:14px"><button class="btn" data-action="save-preferences">設定を保存</button></div></div>
   <div class="card"><div class="card-title"><div><h2>データ管理</h2><div class="small">学習履歴はこのブラウザ内に保存されます。</div></div><span id="storageStatus" class="tag accent"></span></div><div class="actions"><button class="btn" data-action="create-snapshot">復元ポイント作成</button><button class="btn secondary" data-action="auto-backup">自動バックアップ更新</button></div><div id="snapshotList" class="snapshot-list"></div><div class="section-divider"></div><div class="actions"><button class="btn secondary" data-action="export-all">全データ書き出し</button><button class="btn secondary" data-action="import-all">全データ読み込み</button><button class="btn ghost" data-action="export-words">単語だけ書き出し</button><button class="btn ghost" data-action="import-words">単語だけ読み込み</button><button class="btn ghost" data-action="export-ai">AI分析用JSON</button></div><input id="importAllInput" class="hidden" type="file" accept=".json,application/json"><input id="importWordsInput" class="hidden" type="file" accept=".json,application/json"><div class="section-divider"></div><button class="btn danger" data-action="clear-history">学習履歴を消去</button></div>
-  <div class="card flat"><b>受験英単語 Ver.8.0 PWA</b><p class="small" style="margin-top:6px">登録単語数 <span id="settingsWordCount">0</span>語。従来の学習データをそのまま読み込みます。オフラインでも利用できます。</p></div>
+  <div class="card flat"><b>受験英単語 Ver.8.0.1 PWA</b><p class="small" style="margin-top:6px">登録単語数 <span id="settingsWordCount">0</span>語。従来の学習データをそのまま読み込みます。オフラインでも利用できます。</p></div>
 </section>
 </main>
 
@@ -437,10 +437,10 @@ function bindEvents(){
   document.addEventListener('keydown',e=>{if(e.target.matches('[data-answer-index]')&&e.key==='Enter'){e.preventDefault();const i=Number(e.target.dataset.answerIndex),next=$('answer-'+(i+1));if(next){next.focus();next.scrollIntoView({block:'center',behavior:'smooth'})}}if(e.key==='Escape'&&!$('testMenu').classList.contains('hidden'))$('testMenu').classList.add('hidden');else if(e.key==='Escape'&&!$('modalOverlay').classList.contains('hidden'))closeModal(false)});
   $('modalCancel').addEventListener('click',()=>closeModal(false));$('modalConfirm').addEventListener('click',()=>closeModal($('modalInput').classList.contains('hidden')?true:$('modalInput').value));$('modalOverlay').addEventListener('click',e=>{if(e.target===$('modalOverlay'))closeModal(false)});$('updateLaterButton')?.addEventListener('click',()=>{$('updateBanner').classList.add('hidden')});$('updateNowButton')?.addEventListener('click',()=>{if(waitingServiceWorker){waitingServiceWorker.postMessage({type:'SKIP_WAITING'});$('updateNowButton').disabled=true;$('updateNowButton').textContent='更新中…'}});
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.view==='test'&&!state.paused&&state.preferences.autoPause!==false)pauseTest()});
-  window.addEventListener('beforeunload',()=>{if(state.view==='test')saveDraft()});window.addEventListener('error',e=>showRuntimeError(e.error||e.message));window.addEventListener('unhandledrejection',e=>showRuntimeError(e.reason));if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.preferences.appearance==='system')applyTheme()});
+  window.addEventListener('beforeunload',()=>{if(state.view==='test')saveDraft()});window.addEventListener('error',e=>{const message=String(e?.message||'');const isOpaque=message==='Script error.'&&!e?.error&&!e?.filename;if(isOpaque){console.warn('Ignored opaque external script error');return}showRuntimeError(e.error||message||'不明なエラー')});window.addEventListener('unhandledrejection',e=>showRuntimeError(e.reason));if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.preferences.appearance==='system')applyTheme()});
 }
 
-const APP_VERSION='8.0.0';
+const APP_VERSION='8.0.1';
 let waitingServiceWorker=null;
 function updateNetworkBadge(){const badge=$('offlineBadge');if(!badge)return;badge.classList.toggle('hidden',navigator.onLine)}
 function showUpdateBanner(worker){waitingServiceWorker=worker;$('updateBanner')?.classList.remove('hidden')}
