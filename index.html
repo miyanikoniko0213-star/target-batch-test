@@ -5,8 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f3f5f9">
-<title>受験英単語 Ver.7.3</title>
+<meta name="theme-color" content="#243746">
+<meta name="apple-mobile-web-app-title" content="受験英単語">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
+<title>受験英単語</title>
 <style>
 :root{
   --bg:#f3f5f9;--surface:#ffffff;--surface2:#f7f8fb;--surface3:#eef2f7;
@@ -128,13 +132,21 @@ input,select,textarea,button{max-width:100%}
 .maintenance-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;position:relative;z-index:1}
 @media(max-width:620px){.stage-title{font-size:20px}.stage-count{font-size:23px}.stage-head{gap:8px}.stage-foot{display:block;line-height:1.7}}
 
+
+/* Ver.8.0 PWA */
+.update-banner{position:fixed;z-index:230;left:12px;right:12px;bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom));max-width:720px;margin:auto;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:17px;padding:13px 14px;box-shadow:0 18px 50px rgba(15,23,42,.24);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.update-banner-copy{min-width:0}.update-banner-copy b{display:block;font-size:14px;margin-bottom:2px}.update-banner-copy span{display:block;font-size:11px;color:var(--muted);line-height:1.45}.update-banner-actions{display:flex;gap:7px;flex:none}
+.offline-badge{position:fixed;z-index:220;right:12px;top:calc(var(--header-h) + 10px);font-size:11px;font-weight:850;border-radius:999px;padding:7px 10px;background:#7c2d12;color:#fff;box-shadow:0 8px 22px rgba(0,0,0,.18)}
+body.test-mode .update-banner{display:none!important}
+@media(max-width:620px){.update-banner{align-items:stretch;flex-direction:column}.update-banner-actions .btn{flex:1}.update-banner-actions{width:100%}}
+
 </style>
 </head>
 <body>
 <div id="runtimeBanner" class="runtime-banner hidden"><b>アプリ内でエラーが発生しました</b><span id="runtimeMessage"></span></div>
 <header id="appHeader" class="app-header">
   <div class="header-inner">
-    <div class="brand"><div class="brand-mark">英</div><div><div class="brand-title">受験英単語</div><div id="brandStageText" class="small">まずは800単語。</div></div><span class="version">Ver.7.3</span></div>
+    <div class="brand"><div class="brand-mark">英</div><div><div class="brand-title">受験英単語</div><div id="brandStageText" class="small">まずは800単語。</div></div><span class="version">Ver.8.0 PWA</span></div>
     <div id="headerStatus" class="header-status">準備完了</div>
   </div>
 </header>
@@ -210,7 +222,7 @@ input,select,textarea,button{max-width:100%}
 </section>
 
 <section id="view-weak" class="view hidden">
-  <div class="card"><div class="card-title"><div><div class="eyebrow">Weak words</div><h2>苦手リスト</h2><div id="weakSummary" class="small"></div></div><button class="btn" data-action="test-visible-weak">表示中からテスト</button></div><div class="toolbar"><div class="searchbox"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="weakSearch" placeholder="単語・意味・番号・範囲（例 301〜400）"></div><select id="weakFilter"><option value="all">すべて</option><option value="severe">苦手度70以上</option><option value="manual">固定登録のみ</option></select><select id="weakSort"><option value="score">苦手度順</option><option value="recent">最近のミス順</option><option value="wrong">×回数順</option><option value="number">番号順</option></select></div></div>
+  <div class="card"><div class="card-title"><div><div class="eyebrow">Weak words</div><h2>苦手リスト</h2><div id="weakSummary" class="small"></div></div><button class="btn" data-action="test-visible-weak">表示中からテスト</button></div><div class="toolbar"><div class="searchbox"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="weakSearch" placeholder="単語・意味・番号で検索"></div><select id="weakFilter"><option value="all">すべて</option><option value="severe">苦手度70以上</option><option value="manual">固定登録のみ</option></select><select id="weakSort"><option value="score">苦手度順</option><option value="recent">最近のミス順</option><option value="wrong">×回数順</option><option value="number">番号順</option></select></div></div>
   <div id="weakList" class="list-grid"></div>
 </section>
 
@@ -229,7 +241,7 @@ input,select,textarea,button{max-width:100%}
 <section id="view-settings" class="view hidden">
   <div class="card"><div class="card-title"><div><div class="eyebrow">Preferences</div><h2>表示・学習設定</h2></div></div><div class="grid2"><label>表示モード<select id="appearanceSelect"><option value="system">端末設定に合わせる</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label>テーマカラー<select id="themeSelect"><option value="#315efb">ブルー</option><option value="#7c3aed">パープル</option><option value="#15803d">グリーン</option><option value="#c2413b">レッド</option><option value="#111827">ブラック</option></select></label><label>1日の目標<input id="dailyGoalInput" type="number" min="1" value="100"></label></div><div class="section-divider"></div><div class="toggle-row"><div><b>アプリを離れたら自動中断</b><div class="small">テスト中に別アプリへ移動した際、時間計測を止めます。</div></div><label class="switch"><input id="autoPauseToggle" type="checkbox" checked><span></span></label></div><div class="actions" style="margin-top:14px"><button class="btn" data-action="save-preferences">設定を保存</button></div></div>
   <div class="card"><div class="card-title"><div><h2>データ管理</h2><div class="small">学習履歴はこのブラウザ内に保存されます。</div></div><span id="storageStatus" class="tag accent"></span></div><div class="actions"><button class="btn" data-action="create-snapshot">復元ポイント作成</button><button class="btn secondary" data-action="auto-backup">自動バックアップ更新</button></div><div id="snapshotList" class="snapshot-list"></div><div class="section-divider"></div><div class="actions"><button class="btn secondary" data-action="export-all">全データ書き出し</button><button class="btn secondary" data-action="import-all">全データ読み込み</button><button class="btn ghost" data-action="export-words">単語だけ書き出し</button><button class="btn ghost" data-action="import-words">単語だけ読み込み</button><button class="btn ghost" data-action="export-ai">AI分析用JSON</button></div><input id="importAllInput" class="hidden" type="file" accept=".json,application/json"><input id="importWordsInput" class="hidden" type="file" accept=".json,application/json"><div class="section-divider"></div><button class="btn danger" data-action="clear-history">学習履歴を消去</button></div>
-  <div class="card flat"><b>受験英単語 Ver.7.3</b><p class="small" style="margin-top:6px">登録単語数 <span id="settingsWordCount">0</span>語。Ver.5〜6の学習データをそのまま読み込みます。</p></div>
+  <div class="card flat"><b>受験英単語 Ver.8.0 PWA</b><p class="small" style="margin-top:6px">登録単語数 <span id="settingsWordCount">0</span>語。従来の学習データをそのまま読み込みます。オフラインでも利用できます。</p></div>
 </section>
 </main>
 
@@ -244,6 +256,12 @@ input,select,textarea,button{max-width:100%}
 <div id="pauseOverlay" class="pause-overlay hidden"><div class="pause-card"><div class="pause-icon">Ⅱ</div><h2>テストを中断中</h2><p class="muted">制限時間と回答時間の計測を停止しています。</p><div class="actions stretch"><button class="btn" data-action="resume-test">再開する</button><button class="btn ghost" data-action="pause-save-exit">保存して戻る</button></div></div></div>
 <div id="testMenu" class="action-sheet hidden"><div class="action-sheet-card" role="dialog" aria-modal="true" aria-label="テストメニュー"><div class="action-sheet-handle"></div><div class="action-sheet-title"><b>テストメニュー</b><span class="small">必要な操作だけ表示します。</span></div><div class="action-sheet-grid"><button class="btn secondary" data-action="jump-blank">最初の未回答へ</button><button class="btn secondary" data-action="show-question-map">問題マップを開く</button><button class="btn secondary" data-action="pause-test">中断する</button><button class="btn ghost" data-action="save-exit">保存してホームへ戻る</button><button class="btn ghost" data-action="close-test-menu">閉じる</button></div></div></div>
 <div id="modalOverlay" class="modal-overlay hidden"><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><h3 id="modalTitle"></h3><p id="modalMessage"></p><input id="modalInput" class="hidden"><div class="modal-actions"><button id="modalCancel" class="btn ghost">キャンセル</button><button id="modalConfirm" class="btn">実行</button></div></div></div>
+
+<div id="offlineBadge" class="offline-badge hidden">オフライン</div>
+<div id="updateBanner" class="update-banner hidden" role="status" aria-live="polite">
+  <div class="update-banner-copy"><b>新しいバージョンがあります</b><span>学習中の内容は保持されます。更新は好きなタイミングで実行できます。</span></div>
+  <div class="update-banner-actions"><button id="updateLaterButton" class="btn ghost small-btn">あとで</button><button id="updateNowButton" class="btn small-btn">更新する</button></div>
+</div>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -341,8 +359,7 @@ function renderReviewList(){const rows=filteredResultRows();$('reviewList').inne
 function renderReviewItem(r){const cls=r.grade==='×'?'grade-x':r.grade==='△'?'grade-mid':'grade-q',badge=r.grade==='×'?'x':r.grade==='△'?'mid':'o';return`<article class="review-item ${cls}"><div class="review-head"><div><div class="review-word">${r.number} ${esc(r.word)}</div><div class="small">復習優先度 ${reviewPriority(r.number)} / 苦手度 ${weaknessScore(r.number)}</div></div><span class="grade-badge ${badge}">${r.grade}${r.hasQ?' ?':''}</span></div><dl class="answer-pair"><dt>あなたの回答</dt><dd>${esc(r.raw)||'（空欄）'}</dd><dt>模範解答</dt><dd>${r.answers.map(esc).join(' ／ ')}</dd></dl><div class="review-foot"><div class="review-stats">回答 ${(r.responseMs/1000).toFixed(1)}秒　連続正解 ${statFor(r.number).correctStreak||0}回</div><div class="grade-controls"><button class="btn ghost small-btn" data-action="override-grade" data-number="${r.number}" data-grade="○">○</button><button class="btn ghost small-btn" data-action="override-grade" data-number="${r.number}" data-grade="△">△</button><button class="btn ghost small-btn" data-action="override-grade" data-number="${r.number}" data-grade="×">×</button></div></div></article>`}
 function overrideGrade(n,newGrade){const r=state.currentRows.find(x=>x.number===n);if(!r||r.grade===newGrade)return;const s=statFor(n),old=r.grade;if(old==='○')s.correct=Math.max(0,s.correct-1);else if(old==='△')s.partial=Math.max(0,s.partial-1);else s.wrong=Math.max(0,s.wrong-1);if(newGrade==='○')s.correct++;else if(newGrade==='△')s.partial++;else s.wrong++;r.grade=newGrade;s.lastGrade=newGrade;if(newGrade==='○')s.correctStreak=Math.max(1,s.correctStreak||0);else{s.correctStreak=0;s.lastMistakeAt=nowISO();state.removedWeak.delete(n)}const last=state.sessions.at(-1);if(last){last.correct=resultCounts().correct;last.partial=resultCounts().partial;last.wrong=resultCounts().wrong}state.lastResultRows=state.currentRows.map(x=>({number:x.number,grade:x.grade,raw:x.raw,hasQ:x.hasQ,responseMs:x.responseMs}));Store.set(KEYS.lastResult,state.lastResultRows);saveCore();renderResults(false);toast(`${n}番を${newGrade}に変更しました`)}
 function retryRows(grades){const pool=state.currentRows.filter(r=>grades.includes(r.grade)).map(r=>state.words.find(w=>w.number===r.number)).filter(Boolean);if(!pool.length){toast('対象単語がありません');return}startTest(pool)}
-function parseNumberRangeQuery(raw){const text=String(raw||'').trim().replace(/[～〜−–—ー]/g,'-');const m=text.match(/^\s*(\d+)\s*-\s*(\d+)\s*$/);if(!m)return null;let start=Number(m[1]),end=Number(m[2]);if(start>end)[start,end]=[end,start];return{start,end}}
-function getWeakRows(){const rawQuery=$('weakSearch')?.value||'',q=normalize(rawQuery),range=parseNumberRangeQuery(rawQuery),filter=$('weakFilter')?.value||'all',sort=$('weakSort')?.value||'score';let rows=state.words.map(w=>({w,s:statFor(w.number),score:weaknessScore(w.number)})).filter(x=>isWeak(x.w.number));if(range)rows=rows.filter(x=>x.w.number>=range.start&&x.w.number<=range.end);else if(q)rows=rows.filter(x=>normalize(`${x.w.number}${x.w.word}${x.w.answers.join('')}`).includes(q));if(filter==='severe')rows=rows.filter(x=>x.score>=70);if(filter==='manual')rows=rows.filter(x=>state.manualWeak.has(x.w.number));rows.sort((a,b)=>sort==='recent'?new Date(b.s.lastMistakeAt||0)-new Date(a.s.lastMistakeAt||0):sort==='wrong'?b.s.wrong-a.s.wrong||b.score-a.score:sort==='number'?a.w.number-b.w.number:b.score-a.score||b.s.wrong-a.s.wrong);return rows}
+function getWeakRows(){const q=normalize($('weakSearch')?.value||''),filter=$('weakFilter')?.value||'all',sort=$('weakSort')?.value||'score';let rows=state.words.map(w=>({w,s:statFor(w.number),score:weaknessScore(w.number)})).filter(x=>isWeak(x.w.number));if(q)rows=rows.filter(x=>normalize(`${x.w.number}${x.w.word}${x.w.answers.join('')}`).includes(q));if(filter==='severe')rows=rows.filter(x=>x.score>=70);if(filter==='manual')rows=rows.filter(x=>state.manualWeak.has(x.w.number));rows.sort((a,b)=>sort==='recent'?new Date(b.s.lastMistakeAt||0)-new Date(a.s.lastMistakeAt||0):sort==='wrong'?b.s.wrong-a.s.wrong||b.score-a.score:sort==='number'?a.w.number-b.w.number:b.score-a.score||b.s.wrong-a.s.wrong);return rows}
 function weakConfidence(n){const a=statFor(n).attempts;return Math.min(100,Math.round((1-Math.exp(-a/5))*100))}
 function weakStatus(n,score){const a=statFor(n).attempts;if(a<3)return '要観察';if(score>=70)return '苦手';if(score>=45)return '注意';return '軽度'}
 function renderWeak(){const rows=getWeakRows();$('weakSummary').textContent=`${rows.length}語を表示`;$('weakList').innerHTML=rows.length?rows.map(({w,s,score})=>{const confidence=weakConfidence(w.number),status=weakStatus(w.number,score);return`<div class="weak-card"><div class="weak-card-head"><div><div class="word-title">${w.number} ${esc(w.word)}</div><div class="answer-line">${w.answers.map(esc).join(' ／ ')}</div></div><div class="weak-score">${status} ${score}</div></div><div class="weak-bar"><span style="width:${score}%"></span></div><div class="confidence-row"><div class="confidence-track"><span style="width:${confidence}%"></span></div><span class="confidence-label">評価信頼度 ${confidence}%</span></div><div class="tag-row"><span class="tag">回答 ${s.attempts}回</span><span class="tag">× ${s.wrong}回</span><span class="tag">△ ${s.partial}回</span><span class="tag">連続○ ${s.correctStreak||0}</span>${state.manualWeak.has(w.number)?'<span class="tag accent">固定中</span>':''}</div><div class="card-actions"><button class="btn secondary small-btn" data-action="test-one" data-number="${w.number}">1問テスト</button><button class="btn ghost small-btn" data-action="toggle-manual-weak" data-number="${w.number}">${state.manualWeak.has(w.number)?'固定解除':'苦手に固定'}</button><button class="btn ghost small-btn" data-action="remove-weak" data-number="${w.number}">リストから外す</button></div></div>`}).join(''):`<div class="card empty-state"><div class="empty-icon">✓</div><b>苦手単語はありません</b><div class="small">テスト結果に応じて自動で追加されます。</div></div>`}
@@ -418,11 +435,36 @@ function bindEvents(){
   document.addEventListener('change',e=>{if(['orderSelect','modeSelect'].includes(e.target.id))renderStartSummary();if(['weakFilter','weakSort'].includes(e.target.id))renderWeak();if(['wordFilter','wordSort'].includes(e.target.id))renderWords(true);if(e.target.id==='presetSelect'){const p=state.presets.find(x=>x.id===Number(e.target.value));if(p)applySettings(p.settings)}if(e.target.id==='importAllInput'){handleImport(e.target.files[0],'all');e.target.value=''}if(e.target.id==='importWordsInput'){handleImport(e.target.files[0],'words');e.target.value=''}if(e.target.matches('[data-note-number]')){const m=metaFor(Number(e.target.dataset.noteNumber));m.note=e.target.value;m.updatedAt=nowISO();saveCore()}});
   document.addEventListener('focusin',e=>{if(e.target.matches('[data-answer-index]'))beginTiming(Number(e.target.dataset.answerIndex))});document.addEventListener('focusout',e=>{if(e.target.matches('[data-answer-index]'))endTiming(Number(e.target.dataset.answerIndex))});
   document.addEventListener('keydown',e=>{if(e.target.matches('[data-answer-index]')&&e.key==='Enter'){e.preventDefault();const i=Number(e.target.dataset.answerIndex),next=$('answer-'+(i+1));if(next){next.focus();next.scrollIntoView({block:'center',behavior:'smooth'})}}if(e.key==='Escape'&&!$('testMenu').classList.contains('hidden'))$('testMenu').classList.add('hidden');else if(e.key==='Escape'&&!$('modalOverlay').classList.contains('hidden'))closeModal(false)});
-  $('modalCancel').addEventListener('click',()=>closeModal(false));$('modalConfirm').addEventListener('click',()=>closeModal($('modalInput').classList.contains('hidden')?true:$('modalInput').value));$('modalOverlay').addEventListener('click',e=>{if(e.target===$('modalOverlay'))closeModal(false)});
+  $('modalCancel').addEventListener('click',()=>closeModal(false));$('modalConfirm').addEventListener('click',()=>closeModal($('modalInput').classList.contains('hidden')?true:$('modalInput').value));$('modalOverlay').addEventListener('click',e=>{if(e.target===$('modalOverlay'))closeModal(false)});$('updateLaterButton')?.addEventListener('click',()=>{$('updateBanner').classList.add('hidden')});$('updateNowButton')?.addEventListener('click',()=>{if(waitingServiceWorker){waitingServiceWorker.postMessage({type:'SKIP_WAITING'});$('updateNowButton').disabled=true;$('updateNowButton').textContent='更新中…'}});
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.view==='test'&&!state.paused&&state.preferences.autoPause!==false)pauseTest()});
   window.addEventListener('beforeunload',()=>{if(state.view==='test')saveDraft()});window.addEventListener('error',e=>showRuntimeError(e.error||e.message));window.addEventListener('unhandledrejection',e=>showRuntimeError(e.reason));if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{if(state.preferences.appearance==='system')applyTheme()});
 }
-function init(){try{loadState();bindEvents();applyTheme();const b=rangeBounds();$('startNo').min=b.min;$('startNo').max=b.max;$('endNo').min=b.min;$('endNo').max=b.max;$('endNo').value=b.max;if(state.lastSettings)applySettings(state.lastSettings);else renderStartSummary();makeAutoBackup(false);switchView('home');setHeaderStatus('準備完了')}catch(e){showRuntimeError(e)}}
+
+const APP_VERSION='8.0.0';
+let waitingServiceWorker=null;
+function updateNetworkBadge(){const badge=$('offlineBadge');if(!badge)return;badge.classList.toggle('hidden',navigator.onLine)}
+function showUpdateBanner(worker){waitingServiceWorker=worker;$('updateBanner')?.classList.remove('hidden')}
+async function registerPWA(){
+  updateNetworkBadge();
+  window.addEventListener('online',updateNetworkBadge);
+  window.addEventListener('offline',updateNetworkBadge);
+  if(!('serviceWorker' in navigator))return;
+  try{
+    const reg=await navigator.serviceWorker.register('./service-worker.js',{scope:'./'});
+    if(reg.waiting)showUpdateBanner(reg.waiting);
+    reg.addEventListener('updatefound',()=>{
+      const worker=reg.installing;if(!worker)return;
+      worker.addEventListener('statechange',()=>{
+        if(worker.state==='installed'&&navigator.serviceWorker.controller)showUpdateBanner(worker);
+      });
+    });
+    navigator.serviceWorker.addEventListener('controllerchange',()=>window.location.reload());
+    // GitHub PagesやiOSで更新検知が遅れないよう、起動時に確認
+    setTimeout(()=>reg.update().catch(()=>{}),1200);
+  }catch(err){console.warn('PWA registration failed',err)}
+}
+
+function init(){try{loadState();bindEvents();registerPWA();applyTheme();const b=rangeBounds();$('startNo').min=b.min;$('startNo').max=b.max;$('endNo').min=b.min;$('endNo').max=b.max;$('endNo').value=b.max;if(state.lastSettings)applySettings(state.lastSettings);else renderStartSummary();makeAutoBackup(false);switchView('home');setHeaderStatus('準備完了')}catch(e){showRuntimeError(e)}}
 init();
 </script>
 </body>
