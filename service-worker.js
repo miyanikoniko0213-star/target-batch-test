@@ -1,5 +1,5 @@
 // ========================================
-// Service Worker - 受験英単語 Ver.8.2.0
+// Service Worker - 受験英単語 Ver.8.3.0
 //
 // 【役割】
 // HTML・manifest・アイコンを端末側へキャッシュし、
@@ -10,7 +10,7 @@
 // ・静的ファイルはキャッシュを優先して高速に返す。
 // ・学習履歴はService Workerではなく、アプリ側のlocalStorageが担当する。
 // ========================================
-const CACHE_NAME='jukeneitango-v8.2.0';
+const CACHE_NAME='jukeneitango-v8.3.0';
 const APP_SHELL=['./','./index.html','./manifest.webmanifest','./icon-180.png','./icon-192.png','./icon-512.png'];
 
 self.addEventListener('install',event=>{
